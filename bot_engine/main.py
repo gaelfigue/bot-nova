@@ -56,8 +56,9 @@ async def post_init(app: Application) -> None:
     """Callback que se ejecuta tras inicializar el bot pero antes de empezar el polling."""
     logger.info("Iniciando mini-servidor web (aiohttp)...")
     import asyncio
-    # Lanzar el servidor web como tarea de fondo en el loop de asyncio actual
-    asyncio.create_task(start_web_server(host='0.0.0.0', port=8080))
+    # Lanzar el servidor web como tarea de fondo (usará el puerto de la variable de entorno PORT)
+    asyncio.create_task(start_web_server(host='0.0.0.0'))
+
 
 
 def main() -> None:
