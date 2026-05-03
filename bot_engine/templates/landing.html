@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ dj.name }} | Official EPK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;800;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-card: rgba(20, 20, 20, 0.7);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #ff2a5f;
+            --accent-glow: rgba(255, 42, 95, 0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(to bottom, rgba(5,5,5,0.2), var(--bg-dark)), url('{{ dj.cover_url }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-dark) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -3px;
+            margin-bottom: 10px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--accent);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* Main Content Container */
+        .container {
+            max-width: 1000px;
+            margin: -80px auto 50px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Glassmorphism Card */
+        .epk-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+        }
+
+        /* Profile Photo */
+        .profile-section {
+            text-align: center;
+        }
+
+        .profile-img {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg-dark);
+            box-shadow: 0 0 30px var(--accent-glow);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Bio Section */
+        .bio-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            position: relative;
+            display: inline-block;
+        }
+
+        .bio-section h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            height: 3px;
+            width: 40px;
+            background: var(--accent);
+        }
+
+        .bio-text {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--text-main);
+            color: var(--bg-dark);
+            transform: translateY(-3px);
+        }
+
+        .btn i {
+            font-size: 1.2rem;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: white;
+            color: var(--bg-dark);
+            box-shadow: 0 10px 25px var(--accent-glow);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #444;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3.5rem; }
+            .epk-card {
+                grid-template-columns: 1fr;
+                padding: 30px 20px;
+                text-align: center;
+            }
+            .bio-section h2::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .social-links {
+                justify-content: center;
+            }
+            .profile-img {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>{{ dj.name }}</h1>
+            <p>Official Electronic Press Kit</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="epk-card">
+            <div class="profile-section">
+                <img src="{{ dj.photo_url }}" alt="{{ dj.name }}" class="profile-img">
+                
+                <div class="social-links" style="margin-top: 30px; justify-content: center;">
+                    {% if dj.ig_link %}
+                    <a href="{{ dj.ig_link }}" class="btn" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    {% endif %}
+                    {% if dj.sc_link %}
+                    <a href="{{ dj.sc_link }}" class="btn" target="_blank" title="SoundCloud"><i class="fa-brands fa-soundcloud"></i></a>
+                    {% endif %}
+                    {% if dj.sp_link %}
+                    <a href="{{ dj.sp_link }}" class="btn" target="_blank" title="Spotify"><i class="fa-brands fa-spotify"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="bio-section">
+                <h2>About the Artist</h2>
+                <div class="bio-text">{{ dj.bio }}</div>
+
+                <div style="margin-top: 40px;">
+                    <h3>Listen Now</h3>
+                    <div class="social-links" style="margin-top: 15px;">
+                        {% if dj.sp_link %}
+                        <a href="{{ dj.sp_link }}" class="btn primary" target="_blank"><i class="fa-brands fa-spotify"></i> Spotify</a>
+                        {% endif %}
+                        {% if dj.sc_link %}
+                        <a href="{{ dj.sc_link }}" class="btn" target="_blank"><i class="fa-brands fa-soundcloud"></i> SoundCloud</a>
+                        {% endif %}
+                        <a href="#" class="btn"><i class="fa-solid fa-envelope"></i> Bookings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 {{ dj.name }}. Generado por Nova Download Engine.</p>
+    </footer>
+
+</body>
+</html>

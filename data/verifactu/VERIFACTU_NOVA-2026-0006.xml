@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<RegFactuSistemaFacturacion xmlns="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd">
+  <Cabecera>
+    <ObligadoEmision>
+      <NombreRazon>gael amir</NombreRazon>
+      <NIF>734647636476</NIF>
+    </ObligadoEmision>
+  </Cabecera>
+  <RegistroAlta>
+    <IDFactura>
+      <IDEmisorFactura>734647636476</IDEmisorFactura>
+      <NumSerieFactura>NOVA-2026-0006</NumSerieFactura>
+      <FechaExpedicionFactura>2026-05-01</FechaExpedicionFactura>
+    </IDFactura>
+    <Factura>
+      <TipoFactura>F1</TipoFactura>
+      <Destinatarios>
+        <IDDestinatario>
+          <NombreRazon>Rouge</NombreRazon>
+          <NIF>EUDBDV</NIF>
+        </IDDestinatario>
+      </Destinatarios>
+      <Desglose>
+        <DetalleIVA>
+          <BaseImponible>413.22</BaseImponible>
+          <TipoImpositivo>21.00</TipoImpositivo>
+          <CuotaRepercutida>86.78</CuotaRepercutida>
+        </DetalleIVA>
+      </Desglose>
+      <ConceptosAdicionales>
+        <RetencionIRPF>61.98</RetencionIRPF>
+        <ComisionGestion>50.00</ComisionGestion>
+      </ConceptosAdicionales>
+      <CuotaTotal>86.78</CuotaTotal>
+      <ImporteTotal>500.00</ImporteTotal>
+    </Factura>
+    <Huella>
+      <Hash>3ac3425afbfd5c9d533032a974b1ea0a3699778b1a9103d4cb7c226268e6cc95</Hash>
+    </Huella>
+    <SistemaInformatico>
+      <Nombre>NOVA_CORE Engine</Nombre>
+      <Version>1.0.0</Version>
+    </SistemaInformatico>
+  </RegistroAlta>
+</RegFactuSistemaFacturacion>

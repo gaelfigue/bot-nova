@@ -1,0 +1,44 @@
+# ══════════════════════════════════════════════
+# NOVA_CORE .gitignore
+# ══════════════════════════════════════════════
+
+# Entorno
+.env
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Descargas temporales
+downloads/*/
+
+# Logs
+logs/*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Binarios y archivos pesados
+bin/
+ffmpeg.zip
+ffmpeg-master-*/
+*.exe
+*.zip
+*.7z
+
+# Datos locales
+data/landing_pages.json
+dump.json
+
+# Docker
+*.log

@@ -1,0 +1,47 @@
+# ══════════════════════════════════════════════════════════════
+# NOVA_CORE — Docker Compose
+# Levanta todo el ecosistema con: docker-compose up --build -d
+# ══════════════════════════════════════════════════════════════
+
+services:
+  nova-bot:
+    build:
+      context: .
+      dockerfile: bot_engine/Dockerfile
+    container_name: nova-download-engine
+    restart: unless-stopped
+
+    # Variables de entorno desde archivo .env
+    env_file:
+      - .env
+
+    # Volúmenes persistentes
+    volumes:
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+
+    # Límites de recursos (adaptado a Ryzen 5)
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"        # Máximo 4 cores del Ryzen 5
+          memory: 2G         # 2 GB de RAM máximo
+        reservations:
+          cpus: "1.0"
+          memory: 512M
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Red interna
+    networks:
+      - nova-network
+
+networks:
+  nova-network:
+    driver: bridge
+    name: nova-net
