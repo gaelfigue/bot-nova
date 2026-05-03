@@ -50,15 +50,21 @@ async def process_bio_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     # Importar y usar el motor de IA real
     from bot_engine.services.ai_engine import ai_engine
-    result = await ai_engine.generate_press_kit_bio(user_text)
+    try:
+        result = await ai_engine.generate_press_kit_bio(user_text)
+    except Exception as e:
+        result = None
+        error_msg = str(e)
     
     if result:
         bio_es = result['es']
         bio_en = result['en']
     else:
-        # Fallback en caso de error de API
-        bio_es = f"🔥 DJ y Productor emergente: '{user_text}'. Una apuesta segura para cualquier cabina."
-        bio_en = f"🔥 Emerging DJ and Producer: '{user_text}'. A solid bet for any booth."
+        # Fallback con DEBUG
+        error_info = error_msg if 'error_msg' in locals() else "Error desconocido"
+        bio_es = f"⚠️ Error IA: {error_info}\n\nNotas: {user_text}"
+        bio_en = f"⚠️ AI Error: {error_info}\n\nNotes: {user_text}"
+
     
     response = (
         "✅ *Press Kit Generado con IA*\n\n"

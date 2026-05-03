@@ -18,22 +18,16 @@ class AIEngine:
             logger.warning("⚠️ GEMINI_API_KEY no configurada.")
 
 
-    async def _call_gemini(self, prompt: str) -> str:
-        """Realiza una petición directa por REST a la API de Google."""
+    async def _call_gemini_with_error(self, prompt: str) -> str:
+        """Realiza una petición directa por REST a la API de Google y devuelve el error si falla."""
         if not GEMINI_API_KEY:
-            return None
+            return "ERROR: GEMINI_API_KEY no configurada en Railway."
 
         url = f"{self.api_url}?key={GEMINI_API_KEY}"
         payload = {
             "contents": [{
                 "parts": [{"text": prompt}]
-            }],
-            "generationConfig": {
-                "temperature": 0.7,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 1024,
-            }
+            }]
         }
 
         async with aiohttp.ClientSession() as session:
@@ -41,14 +35,19 @@ class AIEngine:
                 async with session.post(url, json=payload) as response:
                     if response.status != 200:
                         err_text = await response.text()
-                        logger.error(f"Error API Gemini ({response.status}): {err_text}")
-                        return None
+                        return f"ERROR: API Gemini ({response.status}) - {err_text[:100]}"
                     
                     data = await response.json()
                     return data['candidates'][0]['content']['parts'][0]['text']
             except Exception as e:
-                logger.error(f"Fallo en conexión REST con Gemini: {e}")
-                return None
+                return f"ERROR: Conexión - {str(e)}"
+
+    async def _call_gemini(self, prompt: str) -> str:
+        res = await self._call_gemini_with_error(prompt)
+        if res.startswith("ERROR:"):
+            return None
+        return res
+
 
     async def generate_press_kit_bio(self, user_notes: str) -> dict:
         """Genera biografía profesional."""
@@ -56,13 +55,18 @@ class AIEngine:
         Actúa como un experto en marketing musical. Genera una biografía profesional para un DJ basada en esto: "{user_notes}".
         
         FORMATO DE RESPUESTA (Obligatorio):
-        ESP: [Biografía en español, tono profesional y épico]
-        ENG: [Professional bio in English]
+        ESP: [Biografía en español]
+        ENG: [Biografía en inglés]
         """
 
-        text = await self._call_gemini(prompt)
+        result = await self._call_gemini_with_error(prompt)
+        if isinstance(result, str) and result.startswith("ERROR:"):
+            raise Exception(result)
+        
+        text = result
         if not text:
             return None
+
 
         try:
             # Parseo robusto
