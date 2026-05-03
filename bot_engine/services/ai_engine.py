@@ -24,7 +24,23 @@ class AIEngine:
         if not GEMINI_API_KEY:
             return "ERROR: GEMINI_API_KEY no configurada en Railway."
 
-        url = f"{self.api_url}?key={GEMINI_API_KEY}"
+        # Debug: Listar modelos disponibles para ver el nombre exacto
+        async with aiohttp.ClientSession() as session:
+            try:
+                list_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
+                async with session.get(list_url) as resp:
+                    models_data = await resp.json()
+                    logger.info(f"Modelos disponibles: {models_data}")
+                    # Si el modelo que queremos no está, buscamos uno que sirva
+                    available_models = [m['name'] for m in models_data.get('models', [])]
+                    target_model = "models/gemini-1.5-flash"
+                    if target_model not in available_models and available_models:
+                        target_model = available_models[0]
+                        logger.warning(f"Cambiando a modelo disponible: {target_model}")
+            except:
+                target_model = "models/gemini-pro"
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/{target_model}:generateContent?key={GEMINI_API_KEY}"
         payload = {
             "contents": [{
                 "parts": [{"text": prompt}]
@@ -32,6 +48,7 @@ class AIEngine:
         }
 
         async with aiohttp.ClientSession() as session:
+
             try:
                 async with session.post(url, json=payload) as response:
                     if response.status != 200:
