@@ -42,8 +42,11 @@ async def get_dj_landing(request: web.Request):
     response = aiohttp_jinja2.render_template('landing.html', request, context)
     return response
 
-async def start_web_server(host='0.0.0.0', port=8080):
+async def start_web_server(host='0.0.0.0', port=None):
     """Inicia el servidor web de aiohttp."""
+    if port is None:
+        port = int(os.getenv("PORT", "8080"))
+
     # Asegurar que el archivo de datos existe
     if not DATA_DIR.exists():
         DATA_DIR.mkdir(parents=True, exist_ok=True)
