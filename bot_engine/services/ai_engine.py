@@ -1,116 +1,85 @@
 """
-NOVA_CORE — AI Engine (Google Gemini)
-Centraliza las llamadas a la IA para generación de texto y consultoría.
+NOVA_CORE — AI Engine (REST Directo)
+Comunicación directa con la API de Google Gemini para máxima compatibilidad.
 """
 
-import google.generativeai as genai
+import aiohttp
+import json
 from bot_engine.config import GEMINI_API_KEY
 from bot_engine.utils.logger import setup_logger
 
 logger = setup_logger("nova.ai")
 
-# Configurar el SDK
-if GEMINI_API_KEY:
-    masked_key = GEMINI_API_KEY[:5] + "..." + GEMINI_API_KEY[-5:]
-    logger.info(f"✅ GEMINI_API_KEY detectada: {masked_key}")
-    genai.configure(api_key=GEMINI_API_KEY)
-else:
-    logger.warning("⚠️ GEMINI_API_KEY no detectada en config.py. Comprueba las variables de entorno.")
-
-
 class AIEngine:
-    def __init__(self, model_name="gemini-1.5-flash"):
-        self.model_name = model_name
-        self._model = None
+    def __init__(self):
+        self.api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        if not GEMINI_API_KEY:
+            logger.warning("⚠️ GEMINI_API_KEY no configurada.")
 
-    @property
-    def model(self):
-        if self._model is None and GEMINI_API_KEY:
-            # Priorizamos gemini-pro por ser el más estable en todas las regiones de Railway
-            for model_name in ["gemini-pro", "gemini-1.5-flash-latest"]:
-                try:
-                    logger.info(f"Intentando inicializar modelo: {model_name}")
-                    self._model = genai.GenerativeModel(model_name)
-                    return self._model
-                except Exception as e:
-                    logger.warning(f"No se pudo inicializar {model_name}: {e}")
-                    continue
-        return self._model
+    async def _call_gemini(self, prompt: str) -> str:
+        """Realiza una petición directa por REST a la API de Google."""
+        if not GEMINI_API_KEY:
+            return None
 
+        url = f"{self.api_url}?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }],
+            "generationConfig": {
+                "temperature": 0.7,
+                "topK": 40,
+                "topP": 0.95,
+                "maxOutputTokens": 1024,
+            }
+        }
 
-
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.post(url, json=payload) as response:
+                    if response.status != 200:
+                        err_text = await response.text()
+                        logger.error(f"Error API Gemini ({response.status}): {err_text}")
+                        return None
+                    
+                    data = await response.json()
+                    return data['candidates'][0]['content']['parts'][0]['text']
+            except Exception as e:
+                logger.error(f"Fallo en conexión REST con Gemini: {e}")
+                return None
 
     async def generate_press_kit_bio(self, user_notes: str) -> dict:
-        """
-        Genera una biografía profesional en español e inglés basada en notas.
-        Retorna un diccionario con ambas versiones.
-        """
-        if not self.model:
-            return None
-
+        """Genera biografía profesional."""
         prompt = f"""
-        Actúa como un experto en marketing musical y manager de artistas electrónicos de primer nivel.
-        Tu tarea es redactar una biografía profesional para un DJ/Productor basada en estas notas: "{user_notes}".
+        Actúa como un experto en marketing musical. Genera una biografía profesional para un DJ basada en esto: "{user_notes}".
         
-        REGLAS:
-        1. El tono debe ser épico, profesional y atractivo para promotores de clubs internacionales.
-        2. Mantén la biografía concisa (máximo 150 palabras).
-        3. No inventes datos que no estén en las notas, pero dales un giro profesional.
-        4. Devuelve el resultado exactamente en este formato (JSON-like, sin bloques de código):
-        ESP: [Biografía en español]
-        ENG: [Biografía en inglés]
+        FORMATO DE RESPUESTA (Obligatorio):
+        ESP: [Biografía en español, tono profesional y épico]
+        ENG: [Professional bio in English]
         """
+
+        text = await self._call_gemini(prompt)
+        if not text:
+            return None
 
         try:
-            logger.info(f"Generando bio para: {user_notes[:30]}...")
-            response = self.model.generate_content(prompt)
-            text = response.text
-            logger.debug(f"Respuesta IA: {text}")
-
-            # Parsear con más robustez
-            esp = ""
-            eng = ""
-            
-            if "ESP:" in text and "ENG:" in text:
-                esp = text.split("ESP:")[1].split("ENG:")[0].strip()
-                eng = text.split("ENG:")[1].strip()
-            else:
-                # Si no viene con los tags, intentamos partirlo por la mitad o usar el texto entero
-                lines = [l.strip() for l in text.split("\n") if l.strip()]
-                if len(lines) >= 2:
-                    esp = lines[0]
-                    eng = lines[1]
-                else:
-                    esp = text
-                    eng = text
-
+            # Parseo robusto
+            esp = text.split("ESP:")[1].split("ENG:")[0].strip()
+            eng = text.split("ENG:")[1].strip()
             return {"es": esp, "en": eng}
-        except Exception as e:
-            logger.error(f"Error crítico en AI Engine: {e}")
-            return None
-
+        except:
+            # Si el formato falla, devolvemos el texto bruto repartido
+            parts = text.split("\n\n")
+            return {"es": parts[0], "en": parts[-1]}
 
     async def get_career_advice(self, user_question: str) -> str:
         """Responde dudas sobre la carrera musical."""
-        if not self.model:
-            return "Lo siento, mi 'cerebro' de IA no está configurado ahora mismo. Contacta con soporte."
-
         prompt = f"""
-        Eres NOVA, el asistente inteligente de Nova Club. Eres un mentor experto en la industria de la música electrónica.
-        Responde a esta pregunta de un DJ emergente: "{user_question}"
-        
-        REGLAS:
-        1. Sé directo, motivador y usa lenguaje de la industria.
-        2. Si la pregunta no tiene nada que ver con música o carrera DJ, dile amablemente que solo respondes sobre la industria.
-        3. Mantén la respuesta corta y accionable (máximo 200 palabras).
+        Eres NOVA, mentor experto en música electrónica. Responde de forma corta y motivadora: "{user_question}"
         """
+        response = await self._call_gemini(prompt)
+        return response if response else "Lo siento, mi conexión cerebral ha fallado."
 
-        try:
-            response = self.model.generate_content(prompt)
-            return response.text
-        except Exception as e:
-            logger.error(f"Error en AI Chat: {e}")
-            return "He tenido un cortocircuito mental al procesar eso. ¿Puedes repetirlo?"
-
-# Instancia única para toda la app
+# Instancia única
 ai_engine = AIEngine()
+
