@@ -12,10 +12,11 @@ logger = setup_logger("nova.ai")
 
 class AIEngine:
     def __init__(self):
-        # Usamos la versión estable v1 y el modelo gemini-pro
-        self.api_url = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
+        # Cambiamos a v1beta y gemini-1.5-flash
+        self.api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
         if not GEMINI_API_KEY:
             logger.warning("⚠️ GEMINI_API_KEY no configurada.")
+
 
 
     async def _call_gemini_with_error(self, prompt: str) -> str:
