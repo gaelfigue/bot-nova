@@ -23,15 +23,19 @@ class AIEngine:
     @property
     def model(self):
         if self._model is None and GEMINI_API_KEY:
-            try:
-                # Intentamos usar el modelo más moderno
-                self._model = genai.GenerativeModel("gemini-1.5-flash")
-                # Test de conexión rápido
-                self._model.generate_content("test")
-            except Exception:
-                logger.warning("⚠️ gemini-1.5-flash no disponible. Usando gemini-pro como backup.")
-                self._model = genai.GenerativeModel("gemini-pro")
+            # Intentamos el modelo más reciente primero
+            for model_name in ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"]:
+                try:
+                    logger.info(f"Intentando inicializar modelo: {model_name}")
+                    self._model = genai.GenerativeModel(model_name)
+                    # No hacemos test aquí para evitar 404s en bucle, 
+                    # lo probaremos en la primera llamada real.
+                    return self._model
+                except Exception as e:
+                    logger.warning(f"No se pudo inicializar {model_name}: {e}")
+                    continue
         return self._model
+
 
 
     async def generate_press_kit_bio(self, user_notes: str) -> dict:
