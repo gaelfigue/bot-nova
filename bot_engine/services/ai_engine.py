@@ -23,8 +23,16 @@ class AIEngine:
     @property
     def model(self):
         if self._model is None and GEMINI_API_KEY:
-            self._model = genai.GenerativeModel(self.model_name)
+            try:
+                # Intentamos usar el modelo más moderno
+                self._model = genai.GenerativeModel("gemini-1.5-flash")
+                # Test de conexión rápido
+                self._model.generate_content("test")
+            except Exception:
+                logger.warning("⚠️ gemini-1.5-flash no disponible. Usando gemini-pro como backup.")
+                self._model = genai.GenerativeModel("gemini-pro")
         return self._model
+
 
     async def generate_press_kit_bio(self, user_notes: str) -> dict:
         """
@@ -48,18 +56,33 @@ class AIEngine:
         """
 
         try:
-            # Gemini Python SDK no es nativo async en todas las versiones, pero lo tratamos con cuidado
+            logger.info(f"Generando bio para: {user_notes[:30]}...")
             response = self.model.generate_content(prompt)
             text = response.text
+            logger.debug(f"Respuesta IA: {text}")
 
-            # Parsear rudimentario pero efectivo
-            esp = text.split("ESP:")[1].split("ENG:")[0].strip()
-            eng = text.split("ENG:")[1].strip()
+            # Parsear con más robustez
+            esp = ""
+            eng = ""
+            
+            if "ESP:" in text and "ENG:" in text:
+                esp = text.split("ESP:")[1].split("ENG:")[0].strip()
+                eng = text.split("ENG:")[1].strip()
+            else:
+                # Si no viene con los tags, intentamos partirlo por la mitad o usar el texto entero
+                lines = [l.strip() for l in text.split("\n") if l.strip()]
+                if len(lines) >= 2:
+                    esp = lines[0]
+                    eng = lines[1]
+                else:
+                    esp = text
+                    eng = text
 
             return {"es": esp, "en": eng}
         except Exception as e:
-            logger.error(f"Error generando Bio con IA: {e}")
+            logger.error(f"Error crítico en AI Engine: {e}")
             return None
+
 
     async def get_career_advice(self, user_question: str) -> str:
         """Responde dudas sobre la carrera musical."""
