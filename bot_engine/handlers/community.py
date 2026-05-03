@@ -48,22 +48,27 @@ async def process_bio_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     msg = await update.message.reply_text("🤖 *Analizando tu perfil con IA...*", parse_mode=ParseMode.MARKDOWN)
     
-    # Simulamos el delay de una IA real (LLM)
-    await asyncio.sleep(2)
+    # Importar y usar el motor de IA real
+    from bot_engine.services.ai_engine import ai_engine
+    result = await ai_engine.generate_press_kit_bio(user_text)
     
-    # Generamos una biografía falsa basada en su texto para la demo
-    bio_es = f"🔥 DJ y Productor emergente con una visión clara de la pista de baile. Su sonido se caracteriza por energías contundentes y ritmos magnéticos. Como nos cuenta en sus propias palabras: '{user_text}'. Una apuesta segura para cualquier cabina que busque conectar de verdad con el público."
-    
-    bio_en = f"🔥 Emerging DJ and Producer with a clear vision for the dancefloor. Their sound is characterized by heavy hitting energy and magnetic grooves. In their own words: '{user_text}'. A solid bet for any booth looking to truly connect with the crowd."
+    if result:
+        bio_es = result['es']
+        bio_en = result['en']
+    else:
+        # Fallback en caso de error de API
+        bio_es = f"🔥 DJ y Productor emergente: '{user_text}'. Una apuesta segura para cualquier cabina."
+        bio_en = f"🔥 Emerging DJ and Producer: '{user_text}'. A solid bet for any booth."
     
     response = (
-        "✅ *Press Kit Generado con Éxito*\n\n"
-        "🇪🇸 *Versión Español (Copia y pega en Spotify/Soundcloud):*\n"
+        "✅ *Press Kit Generado con IA*\n\n"
+        "🇪🇸 *Versión Español:*\n"
         f"_{bio_es}_\n\n"
-        "🇬🇧 *Versión Inglés (Para Booking Internacional):*\n"
+        "🇬🇧 *Versión Inglés:*\n"
         f"_{bio_en}_\n\n"
-        "💡 *Tip de Nova:* Acompaña esto con unas fotos de prensa en blanco y negro."
+        "💡 *Tip de Nova:* Copia estos textos en tu perfil de SoundCloud para dar una imagen profesional."
     )
+
     
     keyboard = [[InlineKeyboardButton("🔙 Volver al Menú", callback_data="menu_principal")]]
     reply_markup = InlineKeyboardMarkup(keyboard)

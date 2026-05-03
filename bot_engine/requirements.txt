@@ -5,6 +5,10 @@
 # Bot de Telegram (v20+ async)
 python-telegram-bot>=20.0,<22.0
 
+# IA - Google Gemini
+google-generativeai>=0.3.2
+
+
 # Descarga de audio
 yt-dlp>=2024.0
 

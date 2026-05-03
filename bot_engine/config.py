@@ -25,6 +25,10 @@ TELEGRAM_TOKEN: str = os.getenv("TELEGRAM_TOKEN", "")
 SPOTIFY_CLIENT_ID: str = os.getenv("SPOTIFY_CLIENT_ID", "2ba362cb6fa645dda37315d6b68c59bb")
 SPOTIFY_CLIENT_SECRET: str = os.getenv("SPOTIFY_CLIENT_SECRET", "9452eb3637fa4e22b5a72751952553b6")
 
+# ─── IA - Google Gemini ─────────────────────────────────────
+GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+
+
 # ─── Rutas ───────────────────────────────────────────────────
 DOWNLOAD_DIR: Path = BASE_DIR / "downloads"
 LOG_DIR: Path = BASE_DIR / "logs"
