@@ -11,9 +11,12 @@ logger = setup_logger("nova.ai")
 
 # Configurar el SDK
 if GEMINI_API_KEY:
+    masked_key = GEMINI_API_KEY[:5] + "..." + GEMINI_API_KEY[-5:]
+    logger.info(f"✅ GEMINI_API_KEY detectada: {masked_key}")
     genai.configure(api_key=GEMINI_API_KEY)
 else:
-    logger.warning("⚠️ GEMINI_API_KEY no configurada. Las funciones de IA estarán limitadas.")
+    logger.warning("⚠️ GEMINI_API_KEY no detectada en config.py. Comprueba las variables de entorno.")
+
 
 class AIEngine:
     def __init__(self, model_name="gemini-1.5-flash"):
@@ -23,18 +26,17 @@ class AIEngine:
     @property
     def model(self):
         if self._model is None and GEMINI_API_KEY:
-            # Intentamos el modelo más reciente primero
-            for model_name in ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"]:
+            # Priorizamos gemini-pro por ser el más estable en todas las regiones de Railway
+            for model_name in ["gemini-pro", "gemini-1.5-flash-latest"]:
                 try:
                     logger.info(f"Intentando inicializar modelo: {model_name}")
                     self._model = genai.GenerativeModel(model_name)
-                    # No hacemos test aquí para evitar 404s en bucle, 
-                    # lo probaremos en la primera llamada real.
                     return self._model
                 except Exception as e:
                     logger.warning(f"No se pudo inicializar {model_name}: {e}")
                     continue
         return self._model
+
 
 
 
