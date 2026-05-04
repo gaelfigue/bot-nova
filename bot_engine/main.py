@@ -26,8 +26,15 @@ from bot_engine.utils.logger import setup_logger
 logger = setup_logger("nova.main")
 
 async def post_init(app: Application) -> None:
-    """Callback tras inicializar el bot."""
-    logger.info("✓ Nova v1.0 cargada correctamente.")
+    """Callback tras inicializar el bot: Configura el menú nativo."""
+    commands = [
+        ("start", "🚀 Iniciar Nova Core"),
+        ("menu", "📱 Panel de Control"),
+        ("mentor", "🤖 Hablar con Mánager IA"),
+        ("login", "🔑 Validar Token Skool")
+    ]
+    await app.bot.set_my_commands(commands)
+    logger.info("✓ Menú nativo configurado. Nova v1.0 Premium Online.")
 
 def main() -> None:
     """Arranca el bot."""

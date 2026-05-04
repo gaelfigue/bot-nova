@@ -7,59 +7,73 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKe
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from bot_engine.services.auth_service import check_tos
+from bot_engine.services.auth_service import check_tos, check_access
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Bienvenida al bot."""
+    """Bienvenida y Dashboard Principal."""
     user = update.effective_user
     
     # 1. Comprobar TOS primero
     if not check_tos(user.id):
         tos_msg = (
-            f"⚡️ *BIENVENIDO A NOVA_CORE v1.0, {user.first_name.upper()}*\n\n"
-            "Este es el sistema operativo para DJs y productores que quieren profesionalizar su carrera.\n\n"
-            "🛡 *AVISO LEGAL:* Antes de empezar, debes aceptar que el uso de este bot es bajo tu responsabilidad. "
-            "NOVA CLUB C.B. no se hace responsable de los contratos o acuerdos generados.\n\n"
-            "👉 Escribe la palabra *ACEPTO* para continuar."
+            f"⚡️ *NOVA_CORE v1.0 — ACCESO LEGAL*\n\n"
+            "Antes de entrar al ecosistema, debes aceptar que eres responsable de tus actos y acuerdos.\n\n"
+            "👉 Escribe la palabra *ACEPTO* para desbloquear."
         )
         await update.message.reply_text(tos_msg, parse_mode=ParseMode.MARKDOWN)
         return
 
-    # 2. Si ya aceptó TOS, mostrar menú principal
-    main_menu = [
-        ["📄 Generar Tech Rider", "📜 Generar Contrato"],
-        ["💰 Registrar Bolo", "📊 Finanzas"],
-        ["⚡️ Mentor IA", "✉️ Cold Mail"]
-    ]
-    reply_markup = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
-    
-    welcome_msg = (
-        f"🎧 *NOVA HUB — ONLINE*\n\n"
-        "Todo lo que necesitas para gestionar tu carrera desde el móvil.\n\n"
-        "Usa el menú inferior para empezar."
-    )
-    await update.message.reply_text(welcome_msg, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
+    # 2. Lógica de Dashboard Premium
+    if check_access(user.id):
+        # PANEL VIP (Cuadrícula)
+        keyboard = [
+            [
+                InlineKeyboardButton("🎧 Tech Rider", callback_data="community_rider"),
+                InlineKeyboardButton("📜 Contrato", callback_data="community_contract")
+            ],
+            [
+                InlineKeyboardButton("📧 Cold Email", callback_data="cb_email"),
+                InlineKeyboardButton("💰 Registrar Bolo", callback_data="cb_bolo")
+            ],
+            [
+                InlineKeyboardButton("🤖 Mentor IA", callback_data="cb_mentor"),
+                InlineKeyboardButton("📊 Finanzas", callback_data="cb_finanzas")
+            ]
+        ]
+        msg = "⚡️ *NOVA_CORE ACTIVADO*\nSelecciona una herramienta táctica:"
+    else:
+        # PANEL RESTRINGIDO
+        keyboard = [
+            [InlineKeyboardButton("🔑 Introducir Token Skool", callback_data="cb_login_start")]
+        ]
+        msg = "🔒 *MODO RESTRINGIDO*\nNo tienes una suscripción validada para este mes."
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(msg, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra los comandos disponibles."""
-    help_text = (
-        "⚡️ *COMANDOS NOVA_CORE v1.0*\n\n"
-        "🔐 `/login TOKEN` - Activa tu suscripción mensual.\n"
-        "📄 `/rider` - Genera tu Tech Rider Premium.\n"
-        "📜 `/contrato` - Genera un contrato de actuación.\n"
-        "💰 `/bolo` - Registra un nuevo bolo y caché.\n"
-        "📊 `/finanzas` - Mira tus ingresos acumulados.\n"
-        "⚡️ `/mentor` - Habla con el Mánager Tiburón.\n"
-        "✉️ `/coldmail` - Genera ataques comerciales."
-    )
-    await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
-
-async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra el estado del sistema."""
-    await update.message.reply_text("✅ NOVA_CORE v1.0 Status: *OPTIMAL*", parse_mode=ParseMode.MARKDOWN)
+    """Relanza el menú principal."""
+    await start_command(update, context)
 
 async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Maneja los clics en botones inline (legacy)."""
+    """Orquestador de botones inline."""
     query = update.callback_query
+    user_id = update.effective_user.id
+    
     await query.answer()
-    await query.edit_message_text("Usa el menú inferior para navegar mejor en v1.0.")
+    
+    if query.data == "cb_login_start":
+        await query.message.reply_text("🔑 Escribe tu token mensual ahora:")
+    elif query.data == "cb_email":
+        await query.message.reply_text("📧 Usa el comando `/coldmail Sala, Género, Info` para generar el ataque.")
+    elif query.data == "cb_mentor":
+        await query.message.reply_text("🤖 Escribe tu duda de negocio directamente:")
+    elif query.data == "cb_bolo":
+        # Llamar al inicio de la conversación de bolo
+        from bot_engine.handlers.finance_handler import start_bolo
+        return await start_bolo(update, context)
+    elif query.data == "cb_finanzas":
+        from bot_engine.handlers.finance_handler import finanzas_command
+        return await finanzas_command(update, context)
+    else:
+        await query.message.reply_text("Comando en desarrollo o redirigido.")
