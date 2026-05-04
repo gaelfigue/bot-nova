@@ -247,9 +247,13 @@ async def process_rider_hosp(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_document(
                 document=f,
                 filename=os.path.basename(pdf_path),
+                caption=f"✅ *Tech Rider Premium Generado*\n\nAquí tienes tu documento profesional.",
+                parse_mode=ParseMode.MARKDOWN
             )
-    else:
-        await update.message.reply_text("⚠️ No se pudo generar el PDF, pero arriba tienes el texto.", reply_markup=reply_markup)
+        await msg.delete()
+    except Exception as e:
+        logger.error(f"Error en rider premium: {e}")
+        await msg.edit_text(f"❌ Error al generar el PDF: {str(e)}")
 
     return ConversationHandler.END
 
