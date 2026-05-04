@@ -37,11 +37,33 @@ def init_db():
             value TEXT
         )
     ''')
+    
+    # Tabla gigs_finanzas (El Tracker Nativo)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS gigs_finanzas (
+            gig_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            sala_nombre TEXT,
+            fecha_bolo TEXT,
+            cache FLOAT,
+            estado TEXT DEFAULT 'PENDIENTE',
+            FOREIGN KEY(user_id) REFERENCES users(user_id)
+        )
+    ''')
+    
+    # Tabla blacklist_promotores (El Radar)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS blacklist_promotores (
+            sala_nombre TEXT PRIMARY KEY,
+            reportes_negativos INTEGER DEFAULT 0
+        )
+    ''')
+
     # Token por defecto inicial
     cursor.execute("INSERT OR IGNORE INTO config (key, value) VALUES ('token_actual', 'NOVA-MAYO-26')")
     conn.commit()
     conn.close()
-    logger.info("Base de datos de usuarios y config inicializada.")
+    logger.info("Base de datos de usuarios, finanzas y blacklist inicializada.")
 
 def get_current_token() -> str:
     """Obtiene el token válido actual de la base de datos."""
@@ -113,6 +135,42 @@ def grant_access(user_id: int, username: str, token: str) -> bool:
     except Exception as e:
         logger.error(f"Error otorgando acceso a {user_id}: {e}")
         return False
+
+def add_gig(user_id: int, sala: str, fecha: str, cache: float):
+    """Registra un nuevo bolo en las finanzas."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO gigs_finanzas (user_id, sala_nombre, fecha_bolo, cache) VALUES (?, ?, ?, ?)",
+        (user_id, sala, fecha, cache)
+    )
+    conn.commit()
+    conn.close()
+
+def get_user_finances(user_id: int) -> dict:
+    """Calcula el total pagado y pendiente para un usuario."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT estado, SUM(cache) FROM gigs_finanzas WHERE user_id = ? GROUP BY estado",
+        (user_id,)
+    )
+    results = cursor.fetchall()
+    conn.close()
+    
+    finanzas = {"PENDIENTE": 0.0, "PAGADO": 0.0}
+    for estado, total in results:
+        finanzas[estado] = total
+    return finanzas
+
+def check_radar(sala: str) -> int:
+    """Verifica si una sala tiene reportes negativos en el Radar."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT reportes_negativos FROM blacklist_promotores WHERE sala_nombre LIKE ?", (f"%{sala}%",))
+    res = cursor.fetchone()
+    conn.close()
+    return res[0] if res else 0
 
 # Inicializar al importar
 init_db()

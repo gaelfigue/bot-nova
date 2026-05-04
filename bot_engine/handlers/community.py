@@ -205,51 +205,48 @@ async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def process_rider_tech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data['rider_tech'] = update.message.text.strip()
     await update.message.reply_text(
-        "2️⃣ **¿Cuáles son tus requisitos de Hospitalidad (Camerino)?**\n"
-        "_(Ej: 4 botellas de agua mineral, 6 cervezas, 1 botella de Vodka, toallas negras)_",
+        "2️⃣ **¿Qué necesitas de Monitorización?**\n"
+        "_(Ej: 2x Monitores autoamplificados de 15' controlables desde mesa)_",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return RIDER_MONITORS
+
+async def process_rider_monitors(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data['rider_monitors'] = update.message.text.strip()
+    await update.message.reply_text(
+        "3️⃣ **Hospitalidad y Camerino**\n"
+        "_(Ej: 4 aguas, 2 toallas negras, 1 botella de Gin)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_HOSP
 
 async def process_rider_hosp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     tech = context.user_data.get('rider_tech', '')
+    monitors = context.user_data.get('rider_monitors', 'Refer to standard technical requirements.')
     hosp = update.message.text.strip()
-    dj_name = update.effective_user.first_name
     
-    msg = await update.message.reply_text("📑 *Estructurando tu Technical Rider con estándares de industria...*", parse_mode=ParseMode.MARKDOWN)
+    user = update.effective_user
+    artist_name = user.first_name
     
-    from bot_engine.services.ai_engine import ai_engine
-    from bot_engine.utils.pdf_generator import pdf_manager
+    msg = await update.message.reply_text("💎 *Diseñando Tech Rider en formato Modo Noche...*", parse_mode=ParseMode.MARKDOWN)
+    
+    from bot_engine.utils.pdf_generator import render_premium_rider
+    
+    data = {
+        "artist_name": artist_name,
+        "setup_audio": tech,
+        "monitors": monitors,
+        "hospitality": hosp,
+        "contact_info": f"{user.username or user.first_name} | Nova Hub System"
+    }
     
     try:
-        rider_content = await ai_engine.professionalize_tech_rider(tech, hosp)
-        # Generar PDF
-        pdf_path = pdf_manager.create_tech_rider_pdf(dj_name, rider_content)
-    except Exception as e:
-        logger.error(f"Error en Tech Rider: {e}")
-        rider_content = f"Error: {str(e)}\n\nTechnical: {tech}\nHospitality: {hosp}"
-        pdf_path = None
-
-    response = (
-        "✅ *TU RIDER PROFESIONAL ESTÁ LISTO*\n\n"
-        "━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"{rider_content}\n"
-        "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "📥 *Te adjunto el documento PDF oficial* para que lo envíes a promotores."
-    )
-    
-    keyboard = [[InlineKeyboardButton("🔙 Volver al Menú", callback_data="menu_principal")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await msg.edit_text(response, parse_mode=ParseMode.MARKDOWN)
-    
-    if pdf_path and os.path.exists(pdf_path):
-        with open(pdf_path, "rb") as pdf_file:
+        pdf_path = render_premium_rider(data)
+        
+        with open(pdf_path, "rb") as f:
             await update.message.reply_document(
-                document=pdf_file,
+                document=f,
                 filename=os.path.basename(pdf_path),
-                caption=f"📄 Technical Rider - {dj_name}",
-                reply_markup=reply_markup
             )
     else:
         await update.message.reply_text("⚠️ No se pudo generar el PDF, pero arriba tienes el texto.", reply_markup=reply_markup)
