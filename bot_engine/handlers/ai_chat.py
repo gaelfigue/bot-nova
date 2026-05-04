@@ -9,12 +9,14 @@ from telegram.constants import ParseMode
 
 from bot_engine.services.ai_engine import ai_engine
 from bot_engine.utils.logger import setup_logger
+from bot_engine.handlers.auth_handler import restricted
 
-logger = setup_logger("nova.chat")
+logger = setup_logger("nova.ai_chat")
 
 # Estado de la conversación
 CHAT_INPUT = 1
 
+@restricted
 async def start_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Inicia el modo chat con la IA."""
     user = update.effective_user

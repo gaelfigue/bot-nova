@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 from bot_engine.utils.logger import setup_logger
+from bot_engine.handlers.auth_handler import restricted
 
 logger = setup_logger("nova.landing")
 
@@ -24,6 +25,7 @@ L_PHOTO = 4
 DATA_DIR = Path(__file__).parent.parent.parent / 'data'
 LANDING_DATA_FILE = DATA_DIR / 'landing_pages.json'
 
+@restricted
 async def start_landing(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query:

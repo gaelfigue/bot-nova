@@ -9,6 +9,7 @@ from telegram.constants import ParseMode
 import asyncio
 
 from bot_engine.utils.logger import setup_logger
+from bot_engine.handlers.auth_handler import restricted
 
 logger = setup_logger("nova.community")
 
@@ -26,6 +27,7 @@ CONT_FEE = 3
 
 # ─── MÓDULO 1: MARCA PERSONAL (Press Kit) ──────────────────────────
 
+@restricted
 async def start_press_kit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Inicia el generador de biografía."""
     query = update.callback_query
@@ -179,6 +181,7 @@ async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
 RIDER_TECH = 1
 RIDER_HOSP = 2
 
+@restricted
 async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query:
@@ -257,6 +260,7 @@ import os # Asegurar que os está disponible para la comprobación del path
 
 VISUAL_GENRE = 1
 
+@restricted
 async def start_visual_identity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query:
@@ -309,6 +313,7 @@ async def process_visual_genre(update: Update, context: ContextTypes.DEFAULT_TYP
 
 # ─── MÓDULO 5: CONTRATOS (Performance Agreement) ─────────────────────────
 
+@restricted
 async def start_contract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query:

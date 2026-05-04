@@ -91,9 +91,11 @@ def main() -> None:
 
     # ─── Registrar handlers ──────────────────────────────
     # 1. Comandos
+    from bot_engine.handlers.auth_handler import login_command
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("status", status_command))
+    app.add_handler(CommandHandler("login", login_command))
     app.add_handler(get_chat_handler()) # Mentor IA
 
 
