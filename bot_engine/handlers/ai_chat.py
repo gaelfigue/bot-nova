@@ -4,7 +4,7 @@ Permite al usuario hacer consultas libres al asistente mentor.
 """
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
+from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from telegram.constants import ParseMode
 
 from bot_engine.services.ai_engine import ai_engine
