@@ -21,13 +21,17 @@ class AIEngine:
 
     async def _call_gemini_with_error(self, prompt: str, system_instruction: str = None) -> str:
         """Realiza una petición directa por REST a la API de Google y devuelve el error si falla."""
-        if not GEMINI_API_KEY:
-            return "ERROR: GEMINI_API_KEY no configurada en Railway."
+        # Búsqueda robusta de la Key (por si en Railway tiene otro nombre)
+        import os
+        api_key = GEMINI_API_KEY or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_KEY")
+        
+        if not api_key:
+            return "ERROR: GEMINI_API_KEY no encontrada. Revisa las variables en Railway."
 
-        # Seleccionar modelo (simplificado para ahorrar latencia en cada llamada)
+        # Seleccionar modelo
         target_model = "models/gemini-1.5-flash"
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/{target_model}:generateContent?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/{target_model}:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
