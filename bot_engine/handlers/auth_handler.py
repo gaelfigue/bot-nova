@@ -80,7 +80,7 @@ async def login_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     token = context.args[0].strip()
     user = update.effective_user
     
-    if grant_access(user.id, token, user.username):
+    if grant_access(user.id, user.username, token):
         await update.message.reply_text("✅ *ACCESO CONCEDIDO*")
         # Abrir el menú automáticamente
         from bot_engine.handlers.start import start_command
