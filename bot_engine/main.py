@@ -29,7 +29,7 @@ from bot_engine.config import TELEGRAM_TOKEN
 from bot_engine.handlers.start import start_command, help_command, status_command
 from bot_engine.handlers.download import handle_download
 from bot_engine.handlers.invoice_handler import get_invoice_conversation
-from bot_engine.handlers.community import get_press_kit_handler, get_budget_handler, get_tech_rider_handler, get_visual_identity_handler
+from bot_engine.handlers.community import get_press_kit_handler, get_budget_handler, get_tech_rider_handler, get_visual_identity_handler, get_contract_handler
 from bot_engine.handlers.landing import get_landing_handler
 from bot_engine.handlers.ai_chat import get_chat_handler
 
