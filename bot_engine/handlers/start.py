@@ -12,7 +12,7 @@ from bot_engine.utils.logger import setup_logger
 logger = setup_logger("nova.cmd")
 
 WELCOME_MSG = """
-🎧 *NOVA DOWNLOAD ENGINE* 🎧
+🎧 *NOVA PROMO HUB* 🎧
 ━━━━━━━━━━━━━━━━━━━━━━━━
 Bienvenido al motor asistente de *Nova Club*.
 
@@ -22,7 +22,7 @@ Selecciona una categoría del menú interactivo, o usa los atajos rápidos del t
 def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
     """Devuelve el teclado principal permanente (Atajos rápidos)."""
     keyboard = [
-        ["🌐 Crear Landing Page (EPK)", "📝 Generador de Press Kit (Bio)"],
+        ["📜 Generar Contrato", "📝 Generador de Press Kit (Bio)"],
         ["🎨 Identidad Visual", "📊 Simulador de Presupuestos"],
         ["📄 Generar Tech Rider", "🧾 Crear Factura"],
         ["📥 Descargar Track Sencillo", "🎛 Analizar LUFS"]
@@ -44,6 +44,7 @@ def get_promotores_menu() -> InlineKeyboardMarkup:
     keyboard = [
         [InlineKeyboardButton("📊 Simulador de Presupuestos", callback_data="community_budget")],
         [InlineKeyboardButton("📄 Generar Tech Rider", callback_data="community_rider")],
+        [InlineKeyboardButton("📜 Generar Contrato", callback_data="community_contract")],
         [InlineKeyboardButton("🔙 Volver", callback_data="menu_principal")]
     ]
     return InlineKeyboardMarkup(keyboard)

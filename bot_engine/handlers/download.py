@@ -188,7 +188,7 @@ async def _process_single_track(url: str, message, user_name: str, context, idx:
             f"📊 {audio_stats['final_lufs']} LUFS │ Peak {audio_stats['peak_dbtp']} dBTP\n"
             f"💿 MP3 320kbps │ {_format_filesize(mp3_output)} {cover_icon}\n"
             f"━━━━━━━━━━━━━━━━━━━\n"
-            f"⚡ _Nova Download Engine_"
+            f"⚡ _Nova Promo Hub_"
         )
 
         with open(mp3_output, "rb") as audio_file:

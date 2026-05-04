@@ -1,7 +1,7 @@
 # install_autostart.ps1
-# Registra Nova Download Engine como tarea de Windows (requiere admin)
+# Registra Nova Promo Hub como tarea de Windows (requiere admin)
 
-$taskName   = "NovaDownloadEngine"
+$taskName   = "NovaPromoHub"
 $pythonPath = "C:\Users\Usuario\.gemini\antigravity\scratch\NOVA_CORE\.venv\Scripts\python.exe"
 $scriptArg  = "-m bot_engine.main"
 $workDir    = "C:\Users\Usuario\.gemini\antigravity\scratch\NOVA_CORE"

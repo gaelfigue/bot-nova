@@ -1,6 +1,6 @@
 """
 NOVA_CORE — Entry Point
-Nova Download Engine para Telegram.
+Nova Promo Hub para Telegram.
 Modo Polling para servidores con IP dinámica.
 """
 
@@ -48,7 +48,7 @@ BANNER = """
  |   N  NN O   O  V V  A   A                    |
  |   N   N  OOO    V   A   A                    |
  |                                               |
- |       D O W N L O A D   E N G I N E          |
+ |           P R O M O   H U B            |
  |            --- Nova Club ---                  |
  |                                               |
  +===============================================+
@@ -105,6 +105,7 @@ def main() -> None:
     app.add_handler(get_landing_handler())
     app.add_handler(get_tech_rider_handler())
     app.add_handler(get_visual_identity_handler())
+    app.add_handler(get_contract_handler())
 
     # 3. Callbacks para el Menú Interactivo (Inline)
     from bot_engine.handlers.start import handle_menu_callbacks
@@ -134,7 +135,7 @@ def main() -> None:
 
     logger.info("✓ Handlers registrados (menú inferior activo)")
     logger.info("✓ Modo: POLLING (IP dinámica compatible)")
-    logger.info("✓ Nova Download Engine ONLINE")
+    logger.info("✓ Nova Promo Hub ONLINE")
 
     # ─── Arrancar en modo Polling ────────────────────────
     # run_polling() maneja el event loop internamente

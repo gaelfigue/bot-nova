@@ -19,6 +19,11 @@ BIO_INPUT = 1
 BUDGET_ATTENDEES = 1
 BUDGET_COST = 2
 
+# Estados para Generador de Contratos
+CONT_VENUE = 1
+CONT_DATE = 2
+CONT_FEE = 3
+
 # ─── MÓDULO 1: MARCA PERSONAL (Press Kit) ──────────────────────────
 
 async def start_press_kit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -203,26 +208,49 @@ async def process_rider_tech(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def process_rider_hosp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     tech = context.user_data.get('rider_tech', '')
     hosp = update.message.text.strip()
+    dj_name = update.effective_user.first_name
     
+    msg = await update.message.reply_text("📑 *Estructurando tu Technical Rider con estándares de industria...*", parse_mode=ParseMode.MARKDOWN)
+    
+    from bot_engine.services.ai_engine import ai_engine
+    from bot_engine.utils.pdf_generator import pdf_manager
+    
+    try:
+        rider_content = await ai_engine.professionalize_tech_rider(tech, hosp)
+        # Generar PDF
+        pdf_path = pdf_manager.create_tech_rider_pdf(dj_name, rider_content)
+    except Exception as e:
+        logger.error(f"Error en Tech Rider: {e}")
+        rider_content = f"Error: {str(e)}\n\nTechnical: {tech}\nHospitality: {hosp}"
+        pdf_path = None
+
     response = (
-        "✅ *TU RIDER PROFESIONAL ESTÁ LISTO*\n"
-        "_(Copia y pega este texto para enviarlo al promotor)_ \n\n"
+        "✅ *TU RIDER PROFESIONAL ESTÁ LISTO*\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        "📋 **TECHNICAL & HOSPITALITY RIDER**\n"
+        f"{rider_content}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🔊 **REQUISITOS TÉCNICOS (CABINA)**\n"
-        f"• {tech}\n\n"
-        "El equipo debe estar linkeado mediante cable de red (Pro DJ Link) y actualizado a su último firmware. Los monitores deben tener control de volumen independiente desde la mesa de mezclas.\n\n"
-        "🥂 **HOSPITALIDAD (CAMERINO / CABINA)**\n"
-        f"• {hosp}\n\n"
-        "🎟 **ACCESOS**\n"
-        "• Artista + 2 Acompañantes (Guestlist).\n\n"
-        "Por favor, confirmar la disponibilidad de este equipo al menos 72h antes del evento.\n"
-        "━━━━━━━━━━━━━━━━━━━━━━━━"
+        "📥 *Te adjunto el documento PDF oficial* para que lo envíes a promotores."
     )
     
-    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    keyboard = [[InlineKeyboardButton("🔙 Volver al Menú", callback_data="menu_principal")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await msg.edit_text(response, parse_mode=ParseMode.MARKDOWN)
+    
+    if pdf_path and os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as pdf_file:
+            await update.message.reply_document(
+                document=pdf_file,
+                filename=os.path.basename(pdf_path),
+                caption=f"📄 Technical Rider - {dj_name}",
+                reply_markup=reply_markup
+            )
+    else:
+        await update.message.reply_text("⚠️ No se pudo generar el PDF, pero arriba tienes el texto.", reply_markup=reply_markup)
+
     return ConversationHandler.END
+
+import os # Asegurar que os está disponible para la comprobación del path
 
 
 # ─── MÓDULO 4: MARCA PERSONAL (Visual Identity) ─────────────────────────
@@ -279,6 +307,81 @@ async def process_visual_genre(update: Update, context: ContextTypes.DEFAULT_TYP
     return ConversationHandler.END
 
 
+# ─── MÓDULO 5: CONTRATOS (Performance Agreement) ─────────────────────────
+
+async def start_contract(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    if query:
+        await query.answer()
+        msg = query.message
+    else:
+        msg = update.message
+
+    await msg.reply_text(
+        "📜 *Generador de Contrato de Actuación*\n\n"
+        "Vamos a blindar legalmente tu próximo bolo.\n\n"
+        "1️⃣ **¿Cómo se llama la sala o el promotor?**",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return CONT_VENUE
+
+async def process_contract_venue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data['cont_venue'] = update.message.text.strip()
+    await update.message.reply_text(
+        "2️⃣ **¿Cuál es la fecha del evento?**\n"
+        "_(Ej: 24 de Junio de 2026)_",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return CONT_DATE
+
+async def process_contract_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data['cont_date'] = update.message.text.strip()
+    await update.message.reply_text(
+        "3️⃣ **¿Cuál es el Fee (honorarios) pactado?**\n"
+        "_(Escribe solo el número en euros, ej: 600)_",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return CONT_FEE
+
+async def process_contract_fee(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    venue = context.user_data.get('cont_venue', 'Cliente')
+    date = context.user_data.get('cont_date', 'Fecha TBD')
+    try:
+        fee = float(update.message.text.replace("€", "").strip())
+    except:
+        fee = 0.0
+        
+    dj_name = update.effective_user.first_name
+    
+    msg = await update.message.reply_text("⚖️ *Redactando cláusulas de protección y generando PDF...*", parse_mode=ParseMode.MARKDOWN)
+    
+    from bot_engine.services.contract_engine import generate_performance_contract
+    
+    try:
+        contract_path = generate_performance_contract(dj_name, venue, date, fee)
+    except Exception as e:
+        logger.error(f"Error en contrato: {e}")
+        contract_path = None
+
+    if contract_path and os.path.exists(contract_path):
+        keyboard = [[InlineKeyboardButton("🔙 Volver al Menú", callback_data="menu_principal")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        with open(contract_path, "rb") as f:
+            await update.message.reply_document(
+                document=f,
+                filename=os.path.basename(contract_path),
+                caption=f"📜 Contrato de Actuación: {dj_name} vs {venue}\n\n*Nova Tip:* Envía esto firmado antes de cualquier desplazamiento.",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
+            )
+        await msg.delete()
+    else:
+        await msg.edit_text("⚠️ Error al generar el contrato. Reintenta más tarde.")
+
+    return ConversationHandler.END
+
+
 # ─── BUILDERS PARA EL MAIN ──────────────────────────────────────────────
 
 def get_press_kit_handler() -> ConversationHandler:
@@ -327,6 +430,20 @@ def get_visual_identity_handler() -> ConversationHandler:
         ],
         states={
             VISUAL_GENRE: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_visual_genre)],
+        },
+        fallbacks=[CommandHandler("cancelar", cancel_conversation)],
+    )
+
+def get_contract_handler() -> ConversationHandler:
+    return ConversationHandler(
+        entry_points=[
+            MessageHandler(filters.Regex("^📜 Generar Contrato$"), start_contract),
+            CallbackQueryHandler(start_contract, pattern="^community_contract$")
+        ],
+        states={
+            CONT_VENUE: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_contract_venue)],
+            CONT_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_contract_date)],
+            CONT_FEE: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_contract_fee)],
         },
         fallbacks=[CommandHandler("cancelar", cancel_conversation)],
     )

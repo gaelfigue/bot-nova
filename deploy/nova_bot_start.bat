@@ -1,11 +1,11 @@
 @echo off
-title Nova Download Engine
+title Nova Promo Hub
 cd /d "C:\Users\Usuario\.gemini\antigravity\scratch\NOVA_CORE"
 
 :inicio
 echo.
 echo  ==========================================
-echo   Nova Download Engine - Auto Restart
+echo   Nova Promo Hub - Auto Restart
 echo   %DATE% %TIME%
 echo  ==========================================
 echo.

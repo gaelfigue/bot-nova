@@ -1,6 +1,6 @@
-# 🎧 NOVA_CORE — Download Engine for Nova Club
+# 🎧 NOVA_CORE — Promo Hub
 
-Motor de descargas profesional para DJs con procesado de audio a nivel de estudio.
+Promo Hub para DJs con procesado de audio a nivel de estudio.
 
 ## ⚡ Quick Start (Local — Sin Docker)
 
@@ -78,9 +78,9 @@ URL → yt-dlp (bestaudio) → WAV lossless
 
 ```
 NOVA_CORE/
-├── bot_engine/          # Motor del bot de Telegram
+├── bot_engine/          # Nova Promo Hub - Bot de Telegram para Nova Club
 │   ├── handlers/        # Comandos y descarga
-│   ├── services/        # Downloader, Audio, Metadata
+│   ├── services/        # Nova Promo Hub: Downloader, Audio, Metadata
 │   ├── utils/           # Logger
 │   └── main.py          # Entry point
 ├── shared_assets/       # Presets, templates, branding
