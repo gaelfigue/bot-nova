@@ -2,121 +2,117 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <title>Tech Rider - {{ dj_name }}</title>
     <style>
         @page {
-            margin: 0;
             size: A4;
+            margin: 0;
         }
         body {
-            background-color: #0a0a0c;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0d0d0d;
             color: #ffffff;
-            font-family: 'Helvetica', 'Arial', sans-serif;
             margin: 0;
-            padding: 40px;
-            line-height: 1.6;
+            padding: 40px 50px;
         }
         .header {
-            border-bottom: 2px solid #6432b4;
+            border-bottom: 2px solid #333;
             padding-bottom: 20px;
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
-        .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 2px;
-        }
-        .logo span {
-            color: #6432b4;
-        }
-        .title {
-            font-size: 48px;
-            font-weight: 800;
+        .header h1 {
+            font-size: 42px;
             margin: 0;
             text-transform: uppercase;
+            letter-spacing: 2px;
             color: #ffffff;
         }
-        .subtitle {
-            color: #6432b4;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-top: -10px;
-        }
-        .section {
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px;
-            border-left: 4px solid #6432b4;
-            border-radius: 0 8px 8px 0;
+        .header p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 5px;
         }
         .section-title {
-            font-size: 14px;
+            background-color: #1a1a1a;
+            padding: 10px 15px;
+            font-size: 18px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #6432b4;
+            letter-spacing: 1px;
+            border-left: 4px solid #ffffff; 
+            margin-top: 30px;
             margin-bottom: 15px;
-            font-weight: bold;
         }
-        .content {
-            font-size: 16px;
-            color: #d1d1d1;
-            white-space: pre-wrap;
+        ul {
+            list-style-type: square;
+            color: #cccccc;
+            line-height: 1.8;
+            font-size: 14px;
         }
-        .contact-box {
+        li strong {
+            color: #ffffff;
+        }
+        .footer {
             margin-top: 50px;
-            border-top: 1px solid #333;
             padding-top: 20px;
+            border-top: 1px dashed #333;
             font-size: 12px;
-            color: #888;
+            color: #666;
             text-align: center;
         }
-        .accent {
-            color: #6432b4;
+        .alert {
+            background-color: #2a0a0a;
+            border: 1px solid #ff3333;
+            padding: 15px;
+            color: #ffcccc;
+            font-size: 13px;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <div class="logo">NOVA<span>HUB</span></div>
-        <div style="text-align: right;">
-            <div style="font-size: 12px; color: #888;">DOCUMENTO TÉCNICO OFICIAL</div>
-            <div style="font-size: 14px;">{{ fecha }}</div>
+        <div style="width: 60%;">
+            <h1>{{ dj_name }}</h1>
+            <p>TECHNICAL & HOSPITALITY RIDER 2026</p>
+        </div>
+        <div style="width: 40%; text-align: right;">
+            <p><strong>Booking:</strong> {{ contacto_email }}</p>
+            <p><strong>Tel:</strong> {{ contacto_tel }}</p>
         </div>
     </div>
 
-    <h1 class="title">{{ artist_name }}</h1>
-    <p class="subtitle">Technical Rider & Hospitality</p>
+    <div class="section-title">1. DJ Equipment (Setup Audio)</div>
+    <ul>
+        <li><strong>Reproductores:</strong> {{ equipo_cdjs }} (Actualizados al último firmware. Conectados vía LAN Hub).</li>
+        <li><strong>Mixer:</strong> {{ equipo_mixer }} (En perfecto estado, crossfader y faders testeados).</li>
+        <li><strong>Conexiones extras:</strong> {{ equipo_extras }}</li>
+    </ul>
 
-    <div class="section">
-        <div class="section-title">01. Requisitos de Audio (Setup)</div>
-        <div class="content">{{ setup_audio }}</div>
+    <div class="section-title">2. Booth & Monitoring (Cabina)</div>
+    <ul>
+        <li><strong>Monitores:</strong> 2x Monitores de alta gama (L-Acoustics, Funktion One, d&b o similar) con control de volumen independiente desde la mesa.</li>
+        <li><strong>Posición:</strong> Los monitores deben estar a la altura de los oídos del artista, NO en el suelo.</li>
+        <li><strong>Mesa de DJ:</strong> Superficie rígida y estable, sin vibraciones. Altura mínima de 95cm.</li>
+    </ul>
+
+    <div class="section-title">3. Hospitality (Camerino y Cabina)</div>
+    <ul>
+        <li>{{ hospitality_bebidas }}</li>
+        <li>2x Toallas negras, limpias y secas (Obligatorio en cabina).</li>
+        <li>{{ hospitality_extras }}</li>
+    </ul>
+
+    <div class="alert">
+        <strong>⚠️ CLÁUSULA DE ESTRICTO CUMPLIMIENTO:</strong><br>
+        Cualquier cambio o sustitución en este Rider técnico debe ser aprobado por escrito por el management del artista al menos 7 días antes del evento. El artista se reserva el derecho a no actuar si el equipo no cumple con las condiciones de seguridad y calidad exigidas.
     </div>
 
-    <div class="section">
-        <div class="section-title">02. Monitoreo y Cabina</div>
-        <div class="content">{{ monitors }}</div>
+    <div class="footer">
+        Documento generado y verificado por <strong>NOVA_CORE SYSTEM</strong> | NOVA CLUB C.B.
     </div>
 
-    <div class="section">
-        <div class="section-title">03. Hospitality & Camerino</div>
-        <div class="content">{{ hospitality }}</div>
-    </div>
-
-    {% if extra_notes %}
-    <div class="section">
-        <div class="section-title">04. Notas Adicionales</div>
-        <div class="content">{{ extra_notes }}</div>
-    </div>
-    {% endif %}
-
-    <div class="contact-box">
-        <p>Este documento es parte integrante del contrato de actuación. <br>
-        Para dudas técnicas contactar con: <span class="accent">{{ contact_info }}</span></p>
-        <p style="margin-top: 10px;">Generated by <strong>Nova Promo Hub</strong> — Management & Booking System</p>
-    </div>
 </body>
 </html>

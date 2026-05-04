@@ -21,10 +21,10 @@ BUDGET_ATTENDEES = 1
 BUDGET_COST = 2
 
 # Estados para Generador de Tech Rider (Premium)
-RIDER_TECH = 1
-RIDER_MONITORS = 2
+RIDER_MIXER = 1
+RIDER_CDJS = 2
 RIDER_HOSP = 3
-CONT_FEE = 3
+RIDER_CONTACT = 4
 
 # Estados para Generador de Contratos
 CONT_VENUE = 1
@@ -186,59 +186,101 @@ async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 @restricted
 async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    if query:
-        await query.answer()
-        msg = query.message
-    else:
-        msg = update.message
+    """Inicia la entrevista del Tech Rider con botones."""
+    msg = update.callback_query.message if update.callback_query else update.message
+    
+    keyboard = [
+        [InlineKeyboardButton("Pioneer DJM-V10 / A9", callback_data="mixer_v10")],
+        [InlineKeyboardButton("Allen & Heath Xone:96", callback_data="mixer_xone")],
+        [InlineKeyboardButton("Pioneer DJM-900NXS2", callback_data="mixer_900")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
     await msg.reply_text(
-        "📄 *Generador de Tech Rider Premium*\n\n"
-        "Voy a entrevistarte para crear un documento de nivel agencia.\n\n"
-        "1️⃣ **¿Qué equipo de audio necesitas?**\n"
-        "_(Ej: 2x CDJ-3000, Mesa DJM-V10...)_",
+        "🎧 *CONFIGURACIÓN DE CABINA*\n\n"
+        "1️⃣ **¿Qué mixer prefieres para tu sesión?**",
+        reply_markup=reply_markup,
         parse_mode=ParseMode.MARKDOWN
     )
-    return RIDER_TECH
+    return RIDER_MIXER
 
-async def process_rider_tech(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data['rider_tech'] = update.message.text.strip()
-    await update.message.reply_text(
-        "2️⃣ **¿Qué necesitas de Monitorización?**\n"
-        "_(Ej: 2x Monitores autoamplificados de 15' controlables desde mesa)_",
+async def process_rider_mixer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    
+    mixer_map = {
+        "mixer_v10": "Pioneer DJM-V10 / A9 (Estándar Premium)",
+        "mixer_xone": "Allen & Heath Xone:96 (Estándar Techno)",
+        "mixer_900": "Pioneer DJM-900NXS2 (Estándar Básico)"
+    }
+    context.user_data['setup_mixer'] = mixer_map.get(query.data, "Pioneer DJM-V10")
+    
+    keyboard = [
+        [InlineKeyboardButton("3x Pioneer CDJ-3000", callback_data="cdj_3x3000")],
+        [InlineKeyboardButton("4x Pioneer CDJ-3000", callback_data="cdj_4x3000")],
+        [InlineKeyboardButton("2x Pioneer CDJ-2000NXS2", callback_data="cdj_2x2000")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.message.edit_text(
+        f"✅ Mixer: *{context.user_data['setup_mixer']}*\n\n"
+        "2️⃣ **¿Cuántos reproductores necesitas?**",
+        reply_markup=reply_markup,
         parse_mode=ParseMode.MARKDOWN
     )
-    return RIDER_MONITORS
+    return RIDER_CDJS
 
-async def process_rider_monitors(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data['rider_monitors'] = update.message.text.strip()
-    await update.message.reply_text(
-        "3️⃣ **Hospitalidad y Camerino**\n"
-        "_(Ej: 4 aguas, 2 toallas negras, 1 botella de Gin)_",
+async def process_rider_cdjs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    
+    cdj_map = {
+        "cdj_3x3000": "3x Pioneer CDJ-3000",
+        "cdj_4x3000": "4x Pioneer CDJ-3000",
+        "cdj_2x2000": "2x Pioneer CDJ-2000NXS2"
+    }
+    context.user_data['setup_cdjs'] = cdj_map.get(query.data, "3x Pioneer CDJ-3000")
+    
+    await query.message.edit_text(
+        f"✅ CDJs: *{context.user_data['setup_cdjs']}*\n\n"
+        "3️⃣ **Hospitalidad (Bebidas y Comida)**\n"
+        "Dime qué necesitas en cabina/camerino.\n"
+        "_(Ej: 4 Aguas, 1 Botella de Tequila, Fruta fresca)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_HOSP
 
 async def process_rider_hosp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    tech = context.user_data.get('rider_tech', '')
-    monitors = context.user_data.get('rider_monitors', 'Refer to standard technical requirements.')
-    hosp = update.message.text.strip()
+    context.user_data['hospitality'] = update.message.text.strip()
+    await update.message.reply_text(
+        "4️⃣ **Datos de Contacto**\n"
+        "Escribe tu Email y Teléfono para el Booking.\n"
+        "_(Ej: info@djnova.es | +34 600 000 000)_",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return RIDER_CONTACT
+
+async def process_rider_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    contact_data = update.message.text.strip()
+    # Parsear email y tel básico
+    parts = contact_data.split("|")
+    email = parts[0].strip() if len(parts) > 0 else "booking@novaclub.es"
+    tel = parts[1].strip() if len(parts) > 1 else "+34 600 000 000"
     
     user = update.effective_user
-    artist_name = user.first_name
+    data = {
+        "artist_name": user.first_name.upper(),
+        "contact_email": email,
+        "contact_tel": tel,
+        "setup_cdjs": context.user_data.get('setup_cdjs'),
+        "setup_mixer": context.user_data.get('setup_mixer'),
+        "setup_extras": "Pro DJ Link Hub + Ethernet (Obligatorio).",
+        "hospitality": context.user_data.get('hospitality')
+    }
     
-    msg = await update.message.reply_text("💎 *Diseñando Tech Rider en formato Modo Noche...*", parse_mode=ParseMode.MARKDOWN)
+    msg = await update.message.reply_text("💎 *Generando Rider Nivel Élite...*", parse_mode=ParseMode.MARKDOWN)
     
     from bot_engine.utils.pdf_generator import render_premium_rider
-    
-    data = {
-        "artist_name": artist_name,
-        "setup_audio": tech,
-        "monitors": monitors,
-        "hospitality": hosp,
-        "contact_info": f"{user.username or user.first_name} | Nova Hub System"
-    }
     
     try:
         pdf_path = render_premium_rider(data)
@@ -247,7 +289,7 @@ async def process_rider_hosp(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_document(
                 document=f,
                 filename=os.path.basename(pdf_path),
-                caption=f"✅ *Tech Rider Premium Generado*\n\nAquí tienes tu documento profesional.",
+                caption=f"✅ *Tech Rider Premium — {user.first_name}*\n\nAquí tienes tu documento de nivel agencia.",
                 parse_mode=ParseMode.MARKDOWN
             )
         await msg.delete()
@@ -425,9 +467,10 @@ def get_tech_rider_handler() -> ConversationHandler:
             CallbackQueryHandler(start_tech_rider, pattern="^community_rider$")
         ],
         states={
-            RIDER_TECH: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_tech)],
-            RIDER_MONITORS: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_monitors)],
+            RIDER_MIXER: [CallbackQueryHandler(process_rider_mixer, pattern="^mixer_")],
+            RIDER_CDJS: [CallbackQueryHandler(process_rider_cdjs, pattern="^cdj_")],
             RIDER_HOSP: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_hosp)],
+            RIDER_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_contact)],
         },
         fallbacks=[CommandHandler("cancelar", cancel_conversation)],
     )

@@ -26,17 +26,23 @@ def render_premium_rider(data: dict) -> Path:
         env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
         template = env.get_template("rider_template.html")
         
-        # Añadir metadatos si no existen
-        if "fecha" not in data:
-            data["fecha"] = datetime.now().strftime("%d/%m/%Y")
-        if "contact_info" not in data:
-            data["contact_info"] = "booking@novaclub.es"
+        # Mapeo de datos para la plantilla Premium
+        template_vars = {
+            "dj_name": data.get("artist_name", "ARTISTA NOVA"),
+            "contacto_email": data.get("contact_email", "booking@novaclub.es"),
+            "contacto_tel": data.get("contact_tel", "+34 600 000 000"),
+            "equipo_cdjs": data.get("setup_cdjs", "3x Pioneer CDJ-3000"),
+            "equipo_mixer": data.get("setup_mixer", "Pioneer DJM-V10"),
+            "equipo_extras": data.get("setup_extras", "Pro DJ Link Hub + Ethernet."),
+            "hospitality_bebidas": data.get("hospitality", "4x Aguas mineral, 2x Toallas negras."),
+            "hospitality_extras": data.get("hosp_extras", "Sin extras.")
+        }
             
         # Renderizar HTML
-        html_content = template.render(**data)
+        html_content = template.render(**template_vars)
         
         # Generar PDF
-        filename = f"TechRider_{data['artist_name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        filename = f"RIDER_{template_vars['dj_name'].replace(' ', '_')}.pdf"
         output_path = OUTPUT_DIR / filename
         
         # WeasyPrint render
