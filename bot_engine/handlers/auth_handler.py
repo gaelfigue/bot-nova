@@ -8,9 +8,47 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from bot_engine.services.auth_service import check_access, grant_access
+from bot_engine.services.auth_service import check_access, grant_access, set_current_token
+from bot_engine.config import ADMIN_ID
 
 def restricted(func):
+    """Decorador asíncrono para restringir acceso a usuarios sin suscripción activa."""
+    @wraps(func)
+    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        user_id = update.effective_user.id
+        
+        if not check_access(user_id):
+            msg = (
+                "⛔️ *ACCESO DENEGADO A NOVA_CORE*\n\n"
+                "Este módulo requiere una suscripción activa o un token válido de este mes.\n\n"
+                "👉 Ve a la comunidad de Skool, copia el token del post fijado y usa el comando:\n"
+                "`/login TU-TOKEN`"
+            )
+            # Manejar tanto mensajes como callbacks
+            if update.callback_query:
+                await update.callback_query.answer("Acceso Denegado", show_alert=True)
+                await update.callback_query.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+            return
+            
+        return await func(update, context, *args, **kwargs)
+    return wrapped
+
+async def set_token_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Comando administrativo para cambiar el token del mes."""
+    user_id = update.effective_user.id
+    if user_id != ADMIN_ID:
+        await update.message.reply_text("⛔️ Comando solo disponible para el administrador jefe.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Usa: `/settoken NUEVO-TOKEN-123`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    nuevo_token = context.args[0].strip()
+    set_current_token(nuevo_token)
+    await update.message.reply_text(f"✅ *TOKEN ACTUALIZADO*\n\nEl nuevo token mensual es: `{nuevo_token}`\n\nA partir de ahora, los usuarios deberán usar este para entrar.", parse_mode=ParseMode.MARKDOWN)
     """Decorador asíncrono para restringir acceso a usuarios sin suscripción activa."""
     @wraps(func)
     async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):

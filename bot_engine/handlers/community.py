@@ -20,6 +20,12 @@ BIO_INPUT = 1
 BUDGET_ATTENDEES = 1
 BUDGET_COST = 2
 
+# Estados para Generador de Tech Rider (Premium)
+RIDER_TECH = 1
+RIDER_MONITORS = 2
+RIDER_HOSP = 3
+CONT_FEE = 3
+
 # Estados para Generador de Contratos
 CONT_VENUE = 1
 CONT_DATE = 2
@@ -178,9 +184,6 @@ async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 # ─── MÓDULO 3: PROMOTORES (Tech Rider) ─────────────────────────
 
-RIDER_TECH = 1
-RIDER_HOSP = 2
-
 @restricted
 async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
@@ -191,10 +194,10 @@ async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         msg = update.message
 
     await msg.reply_text(
-        "📄 *Generador de Tech & Rider*\n\n"
-        "Vamos a crear el documento que enviarás a las salas.\n\n"
-        "1️⃣ **¿Qué equipo técnico necesitas en cabina?**\n"
-        "_(Ej: 3x CDJ-3000, 1x DJM-900NXS2, Monitores a la altura de la cabeza)_",
+        "📄 *Generador de Tech Rider Premium*\n\n"
+        "Voy a entrevistarte para crear un documento de nivel agencia.\n\n"
+        "1️⃣ **¿Qué equipo de audio necesitas?**\n"
+        "_(Ej: 2x CDJ-3000, Mesa DJM-V10...)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_TECH
@@ -422,6 +425,7 @@ def get_tech_rider_handler() -> ConversationHandler:
         ],
         states={
             RIDER_TECH: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_tech)],
+            RIDER_MONITORS: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_monitors)],
             RIDER_HOSP: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_hosp)],
         },
         fallbacks=[CommandHandler("cancelar", cancel_conversation)],

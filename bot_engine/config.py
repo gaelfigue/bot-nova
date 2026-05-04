@@ -20,6 +20,7 @@ if BIN_DIR.exists():
 
 # ─── Telegram ────────────────────────────────────────────────
 TELEGRAM_TOKEN: str = os.getenv("TELEGRAM_TOKEN", "")
+ADMIN_ID: int = int(os.getenv("ADMIN_ID", "8369151547"))
 
 # ─── Spotify API (Para Playlists) ───────────────────────────
 SPOTIFY_CLIENT_ID: str = os.getenv("SPOTIFY_CLIENT_ID", "2ba362cb6fa645dda37315d6b68c59bb")
