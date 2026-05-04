@@ -15,7 +15,7 @@ from telegram.ext import (
 )
 
 from bot_engine.config import TELEGRAM_TOKEN, ADMIN_ID
-from bot_engine.handlers.start import start_command, help_command, status_command
+from bot_engine.handlers.start import start_command, help_command
 from bot_engine.handlers.community import get_press_kit_handler, get_tech_rider_handler, get_contract_handler
 from bot_engine.handlers.finance_handler import get_bolo_handler, finanzas_command, radar_command, coldmail_command
 from bot_engine.handlers.ai_chat import start_chat
@@ -60,7 +60,6 @@ def main() -> None:
     # 2. Comandos Core
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("status", status_command))
     app.add_handler(CommandHandler("mentor", start_chat))
     app.add_handler(CommandHandler("finanzas", finanzas_command))
     app.add_handler(CommandHandler("radar", radar_command))
