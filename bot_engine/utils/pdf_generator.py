@@ -45,8 +45,8 @@ def render_premium_rider(data: dict) -> Path:
         filename = f"RIDER_{template_vars['dj_name'].replace(' ', '_')}.pdf"
         output_path = OUTPUT_DIR / filename
         
-        # WeasyPrint render
-        HTML(string=html_content).write_pdf(str(output_path))
+        # WeasyPrint render con base_url para imágenes
+        HTML(string=html_content, base_url=str(TEMPLATE_DIR)).write_pdf(str(output_path))
         
         logger.info(f"PDF Premium generado: {output_path}")
         return output_path
