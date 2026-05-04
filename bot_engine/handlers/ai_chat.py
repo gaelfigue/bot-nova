@@ -57,7 +57,10 @@ async def stop_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 def get_chat_handler() -> ConversationHandler:
     """Devuelve el handler para integrar en el main."""
     return ConversationHandler(
-        entry_points=[CommandHandler("nova", start_chat)],
+        entry_points=[
+            CommandHandler("mentor", start_chat),
+            CallbackQueryHandler(start_chat, pattern="^cb_mentor$")
+        ],
         states={
             CHAT_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_chat_query)],
         },

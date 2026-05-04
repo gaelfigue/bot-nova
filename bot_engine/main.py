@@ -1,10 +1,11 @@
 """
-NOVA_CORE v1.0 — Entry Point (Webhooks)
+NOVA_CORE v1.2 — Entry Point (Webhooks)
 Foco en MVP: Auth, Rider, Contratos, Finanzas y Mánager IA.
 """
 
 import sys
 import os
+import shutil
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -18,7 +19,7 @@ from bot_engine.config import TELEGRAM_TOKEN, ADMIN_ID
 from bot_engine.handlers.start import start_command, help_command
 from bot_engine.handlers.community import get_press_kit_handler, get_tech_rider_handler, get_contract_handler
 from bot_engine.handlers.finance_handler import get_bolo_handler, finanzas_command, radar_command, coldmail_command
-from bot_engine.handlers.ai_chat import start_chat
+from bot_engine.handlers.ai_chat import get_chat_handler
 from bot_engine.handlers.auth_handler import login_command, set_token_command, handle_tos_acceptance
 
 from bot_engine.utils.logger import setup_logger
@@ -42,13 +43,17 @@ async def post_init(app: Application) -> None:
         if photos.total_count > 0:
             file_id = photos.photos[0][-1].file_id
             new_file = await app.bot.get_file(file_id)
+            
+            # Rutas
             logo_path = os.path.join("shared_assets", "logo_nova.png")
+            template_logo_path = os.path.join("bot_engine", "utils", "templates", "logo_nova.png")
+            
             os.makedirs("shared_assets", exist_ok=True)
+            os.makedirs(os.path.dirname(template_logo_path), exist_ok=True)
+            
             await new_file.download_to_drive(logo_path)
-            logger.info(f"✓ Logo actualizado desde perfil del bot: {logo_path}")
-            # También copiar a templates para WeasyPrint
-            import shutil
-            shutil.copy(logo_path, os.path.join("bot_engine", "utils", "templates", "logo_nova.png"))
+            shutil.copy(logo_path, template_logo_path)
+            logger.info(f"✓ Logo actualizado desde perfil del bot.")
     except Exception as e:
         logger.error(f"Error descargando logo del bot: {e}")
 
@@ -60,7 +65,6 @@ def main() -> None:
         logger.error("✗ TELEGRAM_TOKEN no configurado.")
         sys.exit(1)
 
-    # ─── Construir la aplicación ─────────────────────────
     app = (
         Application.builder()
         .token(TELEGRAM_TOKEN)
@@ -68,8 +72,6 @@ def main() -> None:
         .build()
     )
 
-    # ─── Registrar handlers ──────────────────────────────
-    
     # 1. Seguridad y Acceso
     app.add_handler(CommandHandler("login", login_command))
     app.add_handler(CommandHandler("settoken", set_token_command))
@@ -78,12 +80,12 @@ def main() -> None:
     # 2. Comandos Core
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("mentor", start_chat))
     app.add_handler(CommandHandler("finanzas", finanzas_command))
     app.add_handler(CommandHandler("radar", radar_command))
     app.add_handler(CommandHandler("coldmail", coldmail_command))
 
-    # 3. Conversation Handlers (Riders, Contratos, Bolos)
+    # 3. Conversation Handlers (Riders, Contratos, Bolos, Chat IA)
+    app.add_handler(get_chat_handler())
     app.add_handler(get_tech_rider_handler())
     app.add_handler(get_contract_handler())
     app.add_handler(get_bolo_handler())
@@ -93,15 +95,12 @@ def main() -> None:
     from bot_engine.handlers.start import handle_menu_callbacks
     app.add_handler(CallbackQueryHandler(handle_menu_callbacks))
 
-    logger.info("✓ Handlers v1.0 registrados.")
+    logger.info("✓ Handlers v1.2 registrados.")
 
-    # ─── Modo Webhook para Railway ────────────────────────
-    # En Railway, PORT es una variable de entorno obligatoria
     port = int(os.environ.get("PORT", 8080))
-    webhook_url = os.environ.get("WEBHOOK_URL") # Debes configurar esto en Railway
+    webhook_url = os.environ.get("WEBHOOK_URL")
 
     if webhook_url:
-        logger.info(f"✓ Arrancando en modo WEBHOOK: {webhook_url}")
         app.run_webhook(
             listen="0.0.0.0",
             port=port,
@@ -110,7 +109,6 @@ def main() -> None:
             drop_pending_updates=True
         )
     else:
-        logger.info("✓ Arrancando en modo POLLING (WEBHOOK_URL no detectada).")
         app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
