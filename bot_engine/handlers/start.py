@@ -69,10 +69,11 @@ async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
     if query.data == "cb_login_start":
         await query.message.reply_text("🔑 Escribe tu token mensual ahora:")
     elif query.data == "cb_email":
-        await query.message.reply_text("📧 *REDACTOR DE COLD EMAIL*\nEscribe el nombre de la Sala o Evento y el género para empezar:")
-        # Aquí podrías iniciar una conversación o simplemente esperar el siguiente mensaje
+        from bot_engine.handlers.finance_handler import coldmail_command
+        return await coldmail_command(update, context)
     elif query.data == "cb_mentor":
-        await query.message.reply_text("🤖 *MÁNGER IA ACTIVADO*\n¿Qué duda de negocio tienes? Soy brutalmente honesto. Dispara:")
+        from bot_engine.handlers.ai_chat import start_chat
+        return await start_chat(update, context)
     elif query.data == "cb_finanzas":
         from bot_engine.handlers.finance_handler import finanzas_command
         return await finanzas_command(update, context)

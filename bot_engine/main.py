@@ -26,15 +26,33 @@ from bot_engine.utils.logger import setup_logger
 logger = setup_logger("nova.main")
 
 async def post_init(app: Application) -> None:
-    """Callback tras inicializar el bot: Configura el menú nativo."""
+    """Callback tras inicializar el bot: Configura el menú y descarga el logo."""
+    # 1. Configurar comandos
     commands = [
-        ("start", "🚀 Iniciar Nova Core"),
-        ("menu", "📱 Panel de Control"),
-        ("mentor", "🤖 Hablar con Mánager IA"),
-        ("login", "🔑 Validar Token Skool")
+        ("start", "🚀 Panel de Control"),
+        ("mentor", "🤖 Mánager IA"),
+        ("login", "🔑 Validar Token")
     ]
     await app.bot.set_my_commands(commands)
-    logger.info("✓ Menú nativo configurado. Nova v1.0 Premium Online.")
+    
+    # 2. Descargar Foto de Perfil como Logo
+    try:
+        bot_user = await app.bot.get_me()
+        photos = await app.bot.get_user_profile_photos(bot_user.id, limit=1)
+        if photos.total_count > 0:
+            file_id = photos.photos[0][-1].file_id
+            new_file = await app.bot.get_file(file_id)
+            logo_path = os.path.join("shared_assets", "logo_nova.png")
+            os.makedirs("shared_assets", exist_ok=True)
+            await new_file.download_to_drive(logo_path)
+            logger.info(f"✓ Logo actualizado desde perfil del bot: {logo_path}")
+            # También copiar a templates para WeasyPrint
+            import shutil
+            shutil.copy(logo_path, os.path.join("bot_engine", "utils", "templates", "logo_nova.png"))
+    except Exception as e:
+        logger.error(f"Error descargando logo del bot: {e}")
+
+    logger.info("✓ Nova v1.2 Premium Online.")
 
 def main() -> None:
     """Arranca el bot."""

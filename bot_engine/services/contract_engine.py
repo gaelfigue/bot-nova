@@ -11,11 +11,19 @@ from bot_engine.config import BASE_DIR
 
 class ContractPDF(FPDF):
     def header(self):
+        # Logo del Bot (Nova Club)
+        try:
+            logo_path = os.path.join("bot_engine", "utils", "templates", "logo_nova.png")
+            if os.path.exists(logo_path):
+                self.image(logo_path, 10, 8, 25)
+        except:
+            pass
+            
         self.set_font("Helvetica", "B", 16)
         self.set_text_color(40, 40, 40)
         self.cell(0, 10, "PERFORMANCE AGREEMENT", ln=True, align="C")
         self.set_line_width(0.5)
-        self.line(10, 20, 200, 20)
+        self.line(10, 25, 200, 25)
         self.ln(10)
 
     def footer(self):
