@@ -8,15 +8,27 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from bot_engine.services.auth_service import check_access, grant_access, set_current_token
+from bot_engine.services.auth_service import check_access, grant_access, set_current_token, check_tos, accept_tos
 from bot_engine.config import ADMIN_ID
 
 def restricted(func):
-    """Decorador asíncrono para restringir acceso a usuarios sin suscripción activa."""
+    """Decorador asíncrono para restringir acceso a usuarios sin suscripción o sin TOS aceptados."""
     @wraps(func)
     async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         user_id = update.effective_user.id
         
+        # 1. Verificar TOS
+        if not check_tos(user_id):
+            msg = (
+                "🚨 *AVISO LEGAL OBLIGATORIO*\n\n"
+                "Para usar NOVA_CORE v1.0, debes aceptar nuestros términos de servicio y responsabilidad legal.\n\n"
+                "Usa este bot bajo tu propia responsabilidad. NOVA CLUB C.B. no se hace responsable de los acuerdos generados.\n\n"
+                "👉 Escribe la palabra *ACEPTO* para desbloquear el sistema."
+            )
+            await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+            return
+
+        # 2. Verificar Suscripción
         if not check_access(user_id):
             msg = (
                 "⛔️ *ACCESO DENEGADO A NOVA_CORE*\n\n"
@@ -34,6 +46,19 @@ def restricted(func):
             
         return await func(update, context, *args, **kwargs)
     return wrapped
+
+async def handle_tos_acceptance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handler para detectar cuando el usuario escribe ACEPTO."""
+    text = update.message.text.strip().upper()
+    if text == "ACEPTO":
+        user_id = update.effective_user.id
+        accept_tos(user_id)
+        await update.message.reply_text(
+            "✅ *TÉRMINOS ACEPTADOS*\n\n"
+            "Has desbloqueado el acceso legal a NOVA_CORE. Si ya tienes tu suscripción validada, puedes empezar a usar el mánager.\n\n"
+            "Usa `/help` para ver qué podemos destrozar hoy.",
+            parse_mode=ParseMode.MARKDOWN
+        )
 
 async def set_token_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Comando administrativo para cambiar el token del mes."""

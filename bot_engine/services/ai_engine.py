@@ -95,39 +95,15 @@ Recuerda: ESP: [Texto en español] ENG: [Texto en inglés]
             return {"es": parts[0], "en": parts[-1]}
 
     async def generate_cold_mail(self, club_data: str) -> str:
-        """Genera un email de ataque comercial para cerrar fechas en clubes."""
-        system_prompt = """
-ACTÚAS COMO: NOVA_CORE, el sistema operativo y mánager implacable de DJs y Productores de música electrónica y urbana. 
-
-TU PERSONALIDAD: Eres un veterano de la industria musical (estilo booking agent de Ibiza/Berlín). Eres directo, brutalmente honesto, elitista y puramente enfocado en el NEGOCIO y el DINERO. Cero condescendencia. No usas lenguaje motivacional, usas tácticas de guerra comercial. 
-
-REGLAS DE ACTUACIÓN:
-1. SI TE PIDEN UN EMAIL DE BOOKING (/coldmail):
-   - NUNCA uses frases de perdedor como "Espero que este email te encuentre bien", "Me encantaría pinchar en tu sala" o "Soy un DJ emergente".
-   - Usa la técnica del "Gatillo Mental": Demuestra valor rápido. 
-   - Estructura del mail: Hook agresivo (por qué el club le necesita) -> Datos duros (dónde ha pinchado, género) -> Call to Action claro (caché o disponibilidad).
-   - Escribe el email siempre en dos versiones: Español e Inglés.
-
-2. SI TE PIDEN CONSEJO DE NEGOCIO (/mentor):
-   - Responde con viñetas cortas. Formato Markdown. 
-   - Si un promotor no le paga, aconséjale tácticas agresivas (burofax, presión en redes, retención de material).
-   - Si pregunta por cachés, dile que NUNCA compita por precio, sino por exclusividad. El IVA siempre lo paga la sala.
-
-3. ESTILO DE ESCRITURA:
-   - Usa tono oscuro, técnico y de alto valor. 
-   - Prohibido usar emojis infantiles. Usa solo: ⚡️, 📊, 🚨, 💰, 🎧.
-"""
-        prompt = f"Genera un email de booking agresivo basado en estos datos: {club_data}"
+        """Genera un email de ataque comercial agresivo."""
+        system_prompt = "Eres NOVA_CORE, mánager implacable de DJs. Eres elitista, vas al grano y te enfocas en el negocio. Si te piden un email de booking, usa técnicas de venta agresivas y estructuradas, cero condescendencia. Formato Markdown."
+        prompt = f"Genera un email de booking agresivo basado en estos datos: {club_data}. Escribe siempre una versión en Español y otra en Inglés."
         response = await self._call_gemini(prompt, system_instruction=system_prompt)
-        return response if response else "Error de enlace táctico. Reintenta."
+        return response if response else "Error táctico. Reintenta."
 
     async def get_career_advice(self, user_question: str) -> str:
-        # Reutilizamos el súper prompt centralizado
-        system_prompt = """
-ACTÚAS COMO: NOVA_CORE, el sistema operativo y mánager implacable de DJs y Productores de música electrónica y urbana. 
-TU PERSONALIDAD: Eres un veterano de la industria musical (estilo booking agent de Ibiza/Berlín). Eres directo, brutalmente honesto, elitista y puramente enfocado en el NEGOCIO y el DINERO. 
-REGLAS: Responde con viñetas cortas. Formato Markdown. Tono oscuro y de alto valor. Usa solo: ⚡️, 📊, 🚨, 💰, 🎧.
-"""
+        """Consejo de negocio estilo Tiburón."""
+        system_prompt = "Eres NOVA_CORE, mánager implacable de DJs. Eres elitista, vas al grano y te enfocas en el negocio. Responde de forma brutalmente honesta, sin lenguaje motivacional. Formato Markdown."
         response = await self._call_gemini(user_question, system_instruction=system_prompt)
         return response if response else "Error en el enlace de datos. Reintenta."
 

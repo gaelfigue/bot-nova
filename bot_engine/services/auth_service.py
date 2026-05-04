@@ -27,6 +27,7 @@ def init_db():
             username TEXT,
             token_mes TEXT,
             has_access INTEGER DEFAULT 0,
+            accepted_tos INTEGER DEFAULT 0,
             last_login TEXT
         )
     ''')
@@ -135,6 +136,28 @@ def grant_access(user_id: int, username: str, token: str) -> bool:
     except Exception as e:
         logger.error(f"Error otorgando acceso a {user_id}: {e}")
         return False
+
+def check_tos(user_id: int) -> bool:
+    """Verifica si el usuario ha aceptado los términos legales."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT accepted_tos FROM users WHERE user_id = ?", (user_id,))
+        res = cursor.fetchone()
+        conn.close()
+        return res[0] == 1 if res else False
+    except:
+        return False
+
+def accept_tos(user_id: int):
+    """Marca al usuario como conforme con los términos legales."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET accepted_tos = 1 WHERE user_id = ?", (user_id,))
+    if cursor.rowcount == 0:
+        cursor.execute("INSERT INTO users (user_id, accepted_tos) VALUES (?, 1)", (user_id,))
+    conn.commit()
+    conn.close()
 
 def add_gig(user_id: int, sala: str, fecha: str, cache: float):
     """Registra un nuevo bolo en las finanzas."""
