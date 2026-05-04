@@ -84,8 +84,13 @@ def check_access(user_id: int) -> bool:
 
 def grant_access(user_id: int, username: str, token: str) -> bool:
     """Valida el token y otorga acceso al usuario."""
-    token_actual = get_current_token()
-    if token != token_actual:
+    token_actual = get_current_token().strip().upper()
+    token_usuario = token.strip().upper()
+    
+    logger.info(f"Intento de login: User {user_id} con token '{token_usuario[:4]}...'")
+    
+    if token_usuario != token_actual:
+        logger.warning(f"Token inválido: Se esperaba {token_actual[:4]}... pero se recibió {token_usuario[:4]}...")
         return False
         
     try:
@@ -100,10 +105,10 @@ def grant_access(user_id: int, username: str, token: str) -> bool:
                 token_mes = excluded.token_mes,
                 has_access = 1,
                 last_login = excluded.last_login
-        ''', (user_id, username, token, now))
+        ''', (user_id, username, token_actual, now))
         conn.commit()
         conn.close()
-        logger.info(f"Acceso concedido a {username} ({user_id})")
+        logger.info(f"✅ Acceso concedido a {username} ({user_id})")
         return True
     except Exception as e:
         logger.error(f"Error otorgando acceso a {user_id}: {e}")
