@@ -22,7 +22,6 @@ def restricted(func):
             msg = (
                 "🚨 *AVISO LEGAL OBLIGATORIO*\n\n"
                 "Para usar NOVA_CORE v1.0, debes aceptar nuestros términos de servicio y responsabilidad legal.\n\n"
-                "Usa este bot bajo tu propia responsabilidad. NOVA CLUB C.B. no se hace responsable de los acuerdos generados.\n\n"
                 "👉 Escribe la palabra *ACEPTO* para desbloquear el sistema."
             )
             await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
@@ -36,7 +35,6 @@ def restricted(func):
                 "👉 Ve a la comunidad de Skool, copia el token del post fijado y usa el comando:\n"
                 "`/login TU-TOKEN`"
             )
-            # Manejar tanto mensajes como callbacks
             if update.callback_query:
                 await update.callback_query.answer("Acceso Denegado", show_alert=True)
                 await update.callback_query.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
@@ -53,12 +51,10 @@ async def handle_tos_acceptance(update: Update, context: ContextTypes.DEFAULT_TY
     if text == "ACEPTO":
         user_id = update.effective_user.id
         accept_tos(user_id)
-        await update.message.reply_text(
-            "✅ *TÉRMINOS ACEPTADOS*\n\n"
-            "Has desbloqueado el acceso legal a NOVA_CORE. Si ya tienes tu suscripción validada, puedes empezar a usar el mánager.\n\n"
-            "Usa `/help` para ver qué podemos destrozar hoy.",
-            parse_mode=ParseMode.MARKDOWN
-        )
+        await update.message.reply_text("✅ *TÉRMINOS ACEPTADOS*")
+        # Abrir el menú automáticamente
+        from bot_engine.handlers.start import start_command
+        await start_command(update, context)
 
 async def set_token_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Comando administrativo para cambiar el token del mes."""
@@ -73,49 +69,21 @@ async def set_token_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     nuevo_token = context.args[0].strip()
     set_current_token(nuevo_token)
-    await update.message.reply_text(f"✅ *TOKEN ACTUALIZADO*\n\nEl nuevo token mensual es: `{nuevo_token}`\n\nA partir de ahora, los usuarios deberán usar este para entrar.", parse_mode=ParseMode.MARKDOWN)
-    """Decorador asíncrono para restringir acceso a usuarios sin suscripción activa."""
-    @wraps(func)
-    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        user_id = update.effective_user.id
-        
-        if not check_access(user_id):
-            msg = (
-                "⛔️ *ACCESO DENEGADO A NOVA_CORE*\n\n"
-                "Este módulo requiere una suscripción activa o un token válido de este mes.\n\n"
-                "👉 Ve a la comunidad de Skool, copia el token del post fijado y usa el comando:\n"
-                "`/login TU-TOKEN`"
-            )
-            # Manejar tanto mensajes como callbacks
-            if update.callback_query:
-                await update.callback_query.answer("Acceso Denegado", show_alert=True)
-                await update.callback_query.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-            else:
-                await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-            return
-            
-        return await func(update, context, *args, **kwargs)
-    return wrapped
+    await update.message.reply_text(f"✅ *TOKEN ACTUALIZADO*\n\nEl nuevo token mensual es: `{nuevo_token}`", parse_mode=ParseMode.MARKDOWN)
 
 async def login_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handler para el comando /login."""
     if not context.args:
-        await update.message.reply_text(
-            "⚠️ *Formato incorrecto*\n\nUsa: `/login TOKEN-AQUÍ`", 
-            parse_mode=ParseMode.MARKDOWN
-        )
+        await update.message.reply_text("⚠️ Usa: `/login TOKEN-AQUÍ`", parse_mode=ParseMode.MARKDOWN)
         return
 
     token = context.args[0].strip()
     user = update.effective_user
     
-    if grant_access(user.id, user.full_name, token):
-        await update.message.reply_text(
-            f"✅ *ACCESO CONCEDIDO*\n\nBienvenido de nuevo, *{user.first_name}*. Tu cuenta ha sido validada para este mes en el ecosistema **Nova Promo Hub**.\n\n¿Qué vamos a destrozar hoy? 🎧",
-            parse_mode=ParseMode.MARKDOWN
-        )
+    if grant_access(user.id, token, user.username):
+        await update.message.reply_text("✅ *ACCESO CONCEDIDO*")
+        # Abrir el menú automáticamente
+        from bot_engine.handlers.start import start_command
+        await start_command(update, context)
     else:
-        await update.message.reply_text(
-            "❌ *TOKEN INVÁLIDO*\n\nEse token no es correcto o ha caducado. Búscalo en el post fijado de la comunidad en Skool.",
-            parse_mode=ParseMode.MARKDOWN
-        )
+        await update.message.reply_text("❌ *TOKEN INVÁLIDO*\nConsigue el tuyo en Skool.")

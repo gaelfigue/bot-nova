@@ -198,54 +198,28 @@ async def start_tech_rider(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     await msg.reply_text(
         "🎧 *CONFIGURACIÓN DE CABINA*\n\n"
-        "1️⃣ **¿Qué mixer prefieres para tu sesión?**",
-        reply_markup=reply_markup,
+        "1️⃣ **¿Qué mixer necesitas?**\n"
+        "_(Ej: Pioneer DJM-V10, Allen & Heath Xone:96...)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_MIXER
 
 async def process_rider_mixer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    await query.answer()
-    
-    mixer_map = {
-        "mixer_v10": "Pioneer DJM-V10 / A9 (Estándar Premium)",
-        "mixer_xone": "Allen & Heath Xone:96 (Estándar Techno)",
-        "mixer_900": "Pioneer DJM-900NXS2 (Estándar Básico)"
-    }
-    context.user_data['setup_mixer'] = mixer_map.get(query.data, "Pioneer DJM-V10")
-    
-    keyboard = [
-        [InlineKeyboardButton("3x Pioneer CDJ-3000", callback_data="cdj_3x3000")],
-        [InlineKeyboardButton("4x Pioneer CDJ-3000", callback_data="cdj_4x3000")],
-        [InlineKeyboardButton("2x Pioneer CDJ-2000NXS2", callback_data="cdj_2x2000")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.message.edit_text(
+    context.user_data['setup_mixer'] = update.message.text.strip()
+    await update.message.reply_text(
         f"✅ Mixer: *{context.user_data['setup_mixer']}*\n\n"
-        "2️⃣ **¿Cuántos reproductores necesitas?**",
-        reply_markup=reply_markup,
+        "2️⃣ **¿Qué reproductores necesitas?**\n"
+        "_(Ej: 3x Pioneer CDJ-3000, Technics SL-1210...)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_CDJS
 
 async def process_rider_cdjs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    await query.answer()
-    
-    cdj_map = {
-        "cdj_3x3000": "3x Pioneer CDJ-3000",
-        "cdj_4x3000": "4x Pioneer CDJ-3000",
-        "cdj_2x2000": "2x Pioneer CDJ-2000NXS2"
-    }
-    context.user_data['setup_cdjs'] = cdj_map.get(query.data, "3x Pioneer CDJ-3000")
-    
-    await query.message.edit_text(
-        f"✅ CDJs: *{context.user_data['setup_cdjs']}*\n\n"
-        "3️⃣ **Hospitalidad (Bebidas y Comida)**\n"
-        "Dime qué necesitas en cabina/camerino.\n"
-        "_(Ej: 4 Aguas, 1 Botella de Tequila, Fruta fresca)_",
+    context.user_data['setup_cdjs'] = update.message.text.strip()
+    await update.message.reply_text(
+        f"✅ Platos: *{context.user_data['setup_cdjs']}*\n\n"
+        "3️⃣ **Hospitalidad (Bebidas y Camerino)**\n"
+        "_(Ej: 4 Aguas, 1 Botella de Tequila, Toallas negras)_",
         parse_mode=ParseMode.MARKDOWN
     )
     return RIDER_HOSP
@@ -463,12 +437,12 @@ def get_budget_handler() -> ConversationHandler:
 def get_tech_rider_handler() -> ConversationHandler:
     return ConversationHandler(
         entry_points=[
-            MessageHandler(filters.Regex("^📄 Generar Tech Rider$"), start_tech_rider),
+            MessageHandler(filters.Regex("^🎧 Tech Rider$"), start_tech_rider),
             CallbackQueryHandler(start_tech_rider, pattern="^community_rider$")
         ],
         states={
-            RIDER_MIXER: [CallbackQueryHandler(process_rider_mixer, pattern="^mixer_")],
-            RIDER_CDJS: [CallbackQueryHandler(process_rider_cdjs, pattern="^cdj_")],
+            RIDER_MIXER: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_mixer)],
+            RIDER_CDJS: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_cdjs)],
             RIDER_HOSP: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_hosp)],
             RIDER_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_rider_contact)],
         },

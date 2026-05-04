@@ -60,20 +60,21 @@ async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
     query = update.callback_query
     user_id = update.effective_user.id
     
+    # Solo respondemos si el callback empieza por 'cb_'
+    if not query.data.startswith("cb_"):
+        return
+
     await query.answer()
     
     if query.data == "cb_login_start":
         await query.message.reply_text("🔑 Escribe tu token mensual ahora:")
     elif query.data == "cb_email":
-        await query.message.reply_text("📧 Usa el comando `/coldmail Sala, Género, Info` para generar el ataque.")
+        await query.message.reply_text("📧 *REDACTOR DE COLD EMAIL*\nEscribe el nombre de la Sala o Evento y el género para empezar:")
+        # Aquí podrías iniciar una conversación o simplemente esperar el siguiente mensaje
     elif query.data == "cb_mentor":
-        await query.message.reply_text("🤖 Escribe tu duda de negocio directamente:")
-    elif query.data == "cb_bolo":
-        # Llamar al inicio de la conversación de bolo
-        from bot_engine.handlers.finance_handler import start_bolo
-        return await start_bolo(update, context)
+        await query.message.reply_text("🤖 *MÁNGER IA ACTIVADO*\n¿Qué duda de negocio tienes? Soy brutalmente honesto. Dispara:")
     elif query.data == "cb_finanzas":
         from bot_engine.handlers.finance_handler import finanzas_command
         return await finanzas_command(update, context)
-    else:
-        await query.message.reply_text("Comando en desarrollo o redirigido.")
+    elif query.data == "cb_bolo":
+        await query.message.reply_text("💰 *REGISTRO DE BOLO*\nUsa el comando `/bolo` para empezar el proceso (Estamos moviendo esto a botones también).")
